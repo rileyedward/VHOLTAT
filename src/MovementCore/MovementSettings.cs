@@ -118,6 +118,10 @@ namespace VHOLTAT.Movement
         /// <summary>Facing the wall: dot(forward, -normal) at least this.</summary>
         public float WallClimbMinFacing = 0.85f;
         public float WallClimbPushOff = 14f;
+        /// <summary>Strafe input that turns a wall climb into a wall run along the same wall.</summary>
+        public float WallClimbToRunInput = 0.5f;
+        /// <summary>Vertical speed kept when a climb turns into a wall run (VHOLUME's climb-to-run multiplier).</summary>
+        public float WallClimbToRunVertical = 0.1f;
 
         // Mantle
         public float MantleSpeed = 5f;
@@ -125,5 +129,18 @@ namespace VHOLTAT.Movement
         /// <summary>Horizontal speed kept after a mantle (spec's small-vault momentum multiplier).</summary>
         public float MantleMomentumKeep = 0.95f;
         public float MantleMinExitSpeed = 3f;
+
+        // Vault (ground, automatic): running into waist-high cover goes over it keeping momentum. Bands by obstacle
+        // height (VHOLUME: 40 / 110 cm). Exit speed = best speed of the last second x band multiplier (min 3 m/s).
+        // Faster = quicker: the duration scale goes from 1 down to the band's minimum between its two speeds.
+        public float VaultMinSpeed = 4f;
+        public float VaultSmallHeight = 0.4f;
+        public float VaultMediumHeight = 1.1f;
+        public float VaultSmallKeep = 0.95f;
+        public float VaultMediumKeep = 0.8f;
+        public float VaultLargeKeep = 0.7f;
+        public float VaultSmallScaleMin = 0.5f, VaultSmallSpeedMin = 6f, VaultSmallSpeedMax = 14f;
+        public float VaultMediumScaleMin = 0.5f, VaultMediumSpeedMin = 7f, VaultMediumSpeedMax = 14f;
+        public float VaultLargeScaleMin = 0.6f, VaultLargeSpeedMin = 8f, VaultLargeSpeedMax = 13f;
     }
 }

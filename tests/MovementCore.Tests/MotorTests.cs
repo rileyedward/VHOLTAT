@@ -425,6 +425,61 @@ public class MotorTests
     }
 
     [Fact]
+    public void RunningIntoWaistHighCoverVaultsAndKeepsMomentum()
+    {
+        var m = new MovementMotor(new MovementSettings());
+        m.Reset(Vec3.Zero, grounded: true);
+        Run(m, Input(moveY: 1f), Ground(), 0.5f); // up to 13 m/s
+        var s = Ground();
+        s.VaultFound = true;
+        s.VaultHeight = 0.9f; // medium band
+        s.VaultTarget = new Vec3(0f, 0.9f, 1.2f);
+        m.Step(Input(moveY: 1f), s, Dt);
+        Assert.Equal(MoveState.Mantle, m.State);
+        Assert.True((m.Events & MoveEvents.VaultStarted) != 0);
+
+        var pos = Vec3.Zero;
+        for (int i = 0; i < 120 && m.State == MoveState.Mantle; i++)
+        {
+            var t = Ground(false);
+            t.Position = pos;
+            m.Step(Input(moveY: 1f), t, Dt);
+            pos = pos + m.Velocity * Dt;
+        }
+        Assert.NotEqual(MoveState.Mantle, m.State);
+        Assert.Equal(13f * m.S.VaultMediumKeep, m.HorizontalSpeed, 1);
+    }
+
+    [Fact]
+    public void NoVaultWhenSlowOrNotPushingForward()
+    {
+        var m = Grounded();
+        var s = Ground();
+        s.VaultFound = true;
+        s.VaultHeight = 0.9f;
+        m.Step(Input(moveY: 1f), s, Dt); // standing start: too slow
+        Assert.Equal(MoveState.Ground, m.State);
+    }
+
+    [Fact]
+    public void StrafingDuringClimbTurnsIntoWallRun()
+    {
+        var m = new MovementMotor(new MovementSettings());
+        m.Reset(new Vec3(0f, 3f, 5f), grounded: false);
+        var s = Ground(false);
+        s.WallFront = true;
+        s.WallFrontNormal = new Vec3(0f, 0f, -1f);
+        m.Step(Input(moveY: 1f), s, Dt);
+        Assert.Equal(MoveState.WallClimb, m.State);
+        m.Step(Input(moveY: 1f, moveX: 1f), s, Dt);
+        Assert.True(m.State == MoveState.WallRunLeft || m.State == MoveState.WallRunRight, m.State.ToString());
+        Assert.True(m.Velocity.X > 15f, $"runs along the wall: {m.Velocity}");
+        // Keeps running while still facing the wall and steering along it.
+        Run(m, Input(moveX: 1f), s, 0.3f);
+        Assert.True(m.State == MoveState.WallRunLeft || m.State == MoveState.WallRunRight, m.State.ToString());
+    }
+
+    [Fact]
     public void RotateTowardsFlatTurnsTheShortWay()
     {
         var r = MovementMotor.RotateTowardsFlat(Fwd, Rgt, 0.1f);

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Vault: running into waist-high cover goes over it, keeping 95 / 80 / 70 % of your speed by obstacle height, quicker
+  the faster you run (VHOLUME's vault bands). Plays STRAFTAT's vault sound.
+- Strafe during a wall climb to turn it into a wall run along the same wall.
+- Camera: VHOLUME's head tilt into strafes (3 degrees, scaled by speed). Optional VHOLUME wall-run roll (6 degrees
+  toward the wall) and VHOLUME FOV kicks in [Camera].
+- General release packaging: VHOLTAT-<version>-windows.zip, how-to for any player; developer keys off by default.
+
 ## 0.1.1
 
 - Ladders behave like vanilla again (no wall run or wall climb while on a ladder).
