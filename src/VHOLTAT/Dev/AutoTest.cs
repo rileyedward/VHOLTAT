@@ -60,6 +60,11 @@ namespace VHOLTAT.Dev
             LogVanillaTuning(fpc);
             yield return new WaitForSeconds(4f);
             Plugin.Settings.ShowOverlay.Value = true;
+            if (Plugin.Settings.DevTestMode.Value == "parkour")
+            {
+                yield return Parkour(fpc);
+                yield break;
+            }
 
             MotorDriver.ScriptActive = true;
             yield return Phase("stand", 0.5f, Vector2.zero, false);
@@ -79,6 +84,65 @@ namespace VHOLTAT.Dev
             Plugin.Logger.LogInfo("[test] done");
         }
 
+        /// <summary>Spawns a 1.3 m ledge ahead (mantle), then a long wall on the right (wall run + wall jump).</summary>
+        private IEnumerator Parkour(FirstPersonController fpc)
+        {
+            Transform t = fpc.transform;
+            Vector3 start = t.position;
+            Vector3 fwd = t.forward; fwd.y = 0f; fwd.Normalize();
+            Vector3 right = Vector3.Cross(Vector3.up, fwd);
+            int layer = FirstLayer(fpc.landLayer.value);
+            var cc = fpc.characterController;
+            float feet = cc.bounds.min.y;
+
+            var ledge = Box("vholtat_test_ledge", start + fwd * 7f, fwd, new Vector3(4f, 1.3f, 2f), feet, layer);
+            MotorDriver.ScriptActive = true;
+            yield return Phase("pk-stand", 0.3f, Vector2.zero, false);
+            yield return Phase("pk-run", 0.3f, Vector2.up, false);
+            MotorDriver.ScriptJump = true;
+            yield return Phase("pk-mantle", 1.2f, Vector2.up, false);
+            Shot("vholtat_mantle.png");
+            yield return Phase("pk-stop", 0.5f, Vector2.zero, false);
+            Destroy(ledge);
+
+            cc.enabled = false;
+            t.position = start;
+            cc.enabled = true;
+            MotorDriver.SetActive(true);
+            yield return Phase("pk-reset", 0.5f, Vector2.zero, false);
+
+            var wall = Box("vholtat_test_wall", start + fwd * 12f + right * 1.0f, fwd, new Vector3(0.5f, 5f, 18f), feet, layer);
+            yield return Phase("wr-run", 0.4f, Vector2.up, false);
+            MotorDriver.ScriptJump = true;
+            yield return Phase("wr-wallrun", 0.6f, Vector2.up, false);
+            Shot("vholtat_wallrun.png");
+            yield return Phase("wr-wallrun", 0.3f, Vector2.up, false);
+            MotorDriver.ScriptJump = true;
+            yield return Phase("wr-walljump", 1.2f, Vector2.up, false);
+            yield return Phase("wr-stop", 0.6f, Vector2.zero, false);
+            Destroy(wall);
+            MotorDriver.ScriptActive = false;
+            Plugin.Logger.LogInfo("[test] done");
+        }
+
+        private static GameObject Box(string name, Vector3 centreXZ, Vector3 fwd, Vector3 size, float floorY, int layer)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.layer = layer;
+            go.transform.rotation = Quaternion.LookRotation(fwd, Vector3.up);
+            go.transform.localScale = size;
+            go.transform.position = new Vector3(centreXZ.x, floorY + size.y * 0.5f, centreXZ.z);
+            return go;
+        }
+
+        private static int FirstLayer(int mask)
+        {
+            for (int i = 0; i < 32; i++)
+                if ((mask & (1 << i)) != 0) return i;
+            return 0;
+        }
+
         private IEnumerator Phase(string name, float seconds, Vector2 move, bool crouch)
         {
             MotorDriver.ScriptMove = move;
@@ -91,7 +155,7 @@ namespace VHOLTAT.Dev
                     next += 0.1f;
                     var m = MotorDriver.Motor;
                     var p = MotorDriver.Current != null ? MotorDriver.Current.transform.position : Vector3.zero;
-                    Plugin.Logger.LogInfo($"[test] {name,-10} t={t:0.00} state={m.State,-12} h={m.HorizontalSpeed:0.00} vy={m.Velocity.Y:0.00} grounded={MotorDriver.Sensors.Grounded} pos=({p.x:0.0},{p.y:0.00},{p.z:0.0})");
+                    Plugin.Logger.LogInfo($"[test] {name,-10} t={t:0.00} state={m.State,-12} h={m.HorizontalSpeed:0.00} boost={m.Boost:0.00} vy={m.Velocity.Y:0.00} grounded={MotorDriver.Sensors.Grounded} pos=({p.x:0.0},{p.y:0.00},{p.z:0.0})");
                 }
                 yield return null;
             }

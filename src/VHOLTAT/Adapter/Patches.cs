@@ -79,6 +79,13 @@ namespace VHOLTAT.Adapter
             return false;
         }
 
+        [HarmonyPostfix, HarmonyPatch("HandleAnimation")]
+        private static void HandleAnimation(FirstPersonController __instance)
+        {
+            if (Ours(__instance))
+                RemoteAnimation.Apply(__instance);
+        }
+
         [HarmonyPrefix, HarmonyPatch("HandleSlide")]
         private static bool HandleSlide(FirstPersonController __instance) => !Ours(__instance);
 
