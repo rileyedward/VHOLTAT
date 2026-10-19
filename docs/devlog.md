@@ -29,3 +29,16 @@
 - Parkour self-test ([Dev] TestMode = parkour) spawns a 2 m ledge and a side wall: mantle onto the ledge in ~0.3 s
   keeping 95% speed, wall run at 16.5 m/s with the +2 m/s rise, wall jump off it. No exceptions.
 - Local release packaging: tools/release/build-release.ps1 -> dist/ (Thunderstore layout + manual zip).
+
+## 2026-10-19 — launcher
+
+- `launcher/` builds `VHOLTAT-Launcher.exe` (net48 WinForms), adapted from Straft 4 Dead's launcher minus everything
+  L4D2/asset/tool related. It finds STRAFTAT through Steam, installs the pinned BepInEx 5.4.23.5 (SHA-256 checked,
+  cached) and the embedded VHOLTAT.dll into `%APPDATA%\VHOLTAT\profile`, puts only `winhttp.dll` and a switched-off
+  `doorstop_config.ini` into the game folder (backing up anything it replaces), and Play turns doorstop on through
+  Steam launch arguments. Uninstall restores the game folder and can keep the config. See docs/launcher.md.
+- GitHub update check is wired but off until `LauncherConfig.GitHubRepo` is set.
+- build-release.ps1 also writes `dist\VHOLTAT-Launcher-<ver>.exe`.
+- Tested with the CLI against a fake STRAFTAT folder and a temp home: install (real BepInEx download), status
+  (installed 0.1.0), `--zip` install from the manual zip, uninstall restoring a pre-existing doorstop_config.ini,
+  and a game folder with its own BepInEx left untouched. Play not run.
