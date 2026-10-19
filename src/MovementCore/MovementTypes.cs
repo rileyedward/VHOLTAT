@@ -42,6 +42,8 @@ namespace VHOLTAT.Movement
         public Vec3 Forward, Right;
         /// <summary>Full look direction (may point up or down).</summary>
         public Vec3 Look;
+        /// <summary>Ground speed multiplier from the game (weapons, aiming). 0 is treated as 1.</summary>
+        public float SpeedScale;
     }
 
     /// <summary>What the engine adapter sensed around the player this frame.</summary>

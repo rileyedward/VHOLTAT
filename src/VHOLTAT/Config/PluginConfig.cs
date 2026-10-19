@@ -16,6 +16,9 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<KeyCode> ToggleKey;
         public readonly ConfigEntry<bool> ShowOverlay;
         public readonly ConfigEntry<KeyCode> OverlayKey;
+        public readonly ConfigEntry<bool> VanillaVault;
+        public readonly ConfigEntry<bool> DevAutoTest;
+        public readonly ConfigEntry<string> DevTestMap;
 
         public readonly MovementSettings Movement = new MovementSettings();
 
@@ -27,6 +30,11 @@ namespace VHOLTAT.Config
             Enabled = file.Bind("General", "Enabled", true,
                 "Use VHOLTAT movement for your own player. Toggle in game with ToggleKey.");
             ToggleKey = file.Bind("General", "ToggleKey", KeyCode.F6, "Switches between vanilla and VHOLTAT movement live.");
+            VanillaVault = file.Bind("Mantle", "VanillaVault", false,
+                "Keep STRAFTAT's own vault (hop over waist-high walls) alongside VHOLTAT's mantle.");
+            DevAutoTest = file.Bind("Dev", "AutoTest", false,
+                "Developer self-test: enters TestMap from the menu, drives a scripted run/slide/jump and logs it.");
+            DevTestMap = file.Bind("Dev", "TestMap", "Arena_00", "Map for the self-test (exploration mode).");
             ShowOverlay = file.Bind("Debug", "ShowOverlay", false, "Shows speed, state, grounded and wall info.");
             OverlayKey = file.Bind("Debug", "OverlayKey", KeyCode.F7, "Shows/hides the debug overlay.");
 

@@ -73,7 +73,7 @@ namespace VHOLTAT.Movement
         // Wall climb
         public float WallClimbSpeed = 4f;
         public float WallClimbHoldTime = 0.4f;
-        public float WallClimbDuration = 1.2f;
+        public float WallClimbDuration = 0.8f;
         /// <summary>Upward speed lost per second once the hold time has passed.</summary>
         public float WallClimbDecay = 1.2f;
         /// <summary>Facing the wall: dot(forward, -normal) at least this.</summary>
