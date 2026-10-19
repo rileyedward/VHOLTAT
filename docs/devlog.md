@@ -42,3 +42,23 @@
 - Tested with the CLI against a fake STRAFTAT folder and a temp home: install (real BepInEx download), status
   (installed 0.1.0), `--zip` install from the manual zip, uninstall restoring a pre-existing doorstop_config.ini,
   and a game folder with its own BepInEx left untouched. Play not run.
+
+## 2026-10-19 (evening) — match readiness, 0.1.1
+
+- Riley locked the feel after feel test 5: Vholume preset + JumpRiseGravity 1.12 (jump ~1.33 m / 0.33 s). Defaults
+  match it; don't change without Riley.
+- STRAFTAT rules: AddForce/AddHorizontalForce (all weapon/hit knockback) now cancel carried momentum like vanilla;
+  vanilla writes to moveDirection.y are applied as "set vertical speed"; weapon fire slowdown (SetSpeed) scales ground
+  speed; ladders stay vanilla (wall/climb sensors off while onLadder); boosted teleports (pads) launch correctly.
+- Multiplayer: two-copy LAN test ported from Straft4Dead (tools/dev/make_client_instance.ps1, lan_test.sh, Dev/DevNet.cs)
+  with a client-side observer. A real match (lobby -> StartGameSteam -> Arena_00 -> death -> respawn) works; the
+  round-start freeze didn't trigger over the LAN link, check it in the first Steam match. Join-time version check
+  (banner + vanilla movement on mismatch; STRAFTAT itself also rejects joins with different mods).
+- Simulated 120 ms RTT + 2 % loss (--vholtat-lag/--vholtat-loss): remote players stuttered a little at speed; an
+  8-tick remote NetworkTransform buffer ([Multiplayer] RemoteInterpolationTicks) cut the unevenness by ~30 %.
+- Feedback: STRAFTAT slide/wall-slide loops (networked) and landing dip. Perf: ~0.04 ms/frame, no per-frame allocation
+  of ours (the only allocation is vanilla's OnControllerColliderHit inside CharacterController.Move).
+- Stuck-spot sweep (TestMode = sweep, tools/dev/map_sweep.sh) on Corridor_00, Scaffoldingue_00, Chateaux_01,
+  Neo_Arena_03, Backrooms_00; F10 spot marker ([Debug] MarkSpots) for spots found in normal play.
+- Launcher (launcher/, VHOLTAT-Launcher.exe), friends bundle, README, CHANGELOG; release zips now use forward-slash
+  entry names (PowerShell 5's Compress-Archive wrote backslashes).

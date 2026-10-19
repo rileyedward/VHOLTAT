@@ -5,6 +5,7 @@ using BepInEx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VHOLTAT.Adapter;
+using VHOLTAT.Movement;
 
 namespace VHOLTAT.Dev
 {
@@ -88,6 +89,11 @@ namespace VHOLTAT.Dev
             }
             yield return new WaitForSeconds(4f);
             Plugin.Settings.ShowOverlay.Value = true;
+            if (Plugin.Settings.DevTestMode.Value == "sweep")
+            {
+                yield return Sweep(fpc);
+                yield break;
+            }
             if (Plugin.Settings.DevTestMode.Value == "parkour")
             {
                 yield return Parkour(fpc);
@@ -189,6 +195,85 @@ namespace VHOLTAT.Dev
             Destroy(pad.gameObject);
 
             MotorDriver.ScriptActive = false;
+            Plugin.Logger.LogInfo("[test] done");
+        }
+
+        /// <summary>
+        /// Stuck-spot sweep on a real map: from spawn, 8 headings x 4 s of running with jumps (and slides on every
+        /// other heading). Logs a STALL when the player is airborne and hasn't moved 5 cm in 0.5 s (wedged on a lip,
+        /// climbing into an overhang...). One map per launch.
+        /// </summary>
+        private IEnumerator Sweep(FirstPersonController fpc)
+        {
+            Transform t = fpc.transform;
+            var cc = fpc.characterController;
+            Vector3 start = t.position;
+            string map = SceneManager.GetActiveScene().name;
+            int stalls = 0, falls = 0;
+            float maxSpeed = 0f;
+            MotorDriver.ScriptActive = true;
+            for (int h = 0; h < 8; h++)
+            {
+                if (fpc == null)
+                {
+                    // Ran off the map: STRAFTAT despawned and respawned the player. Pick up the new one.
+                    MotorDriver.ScriptMove = Vector2.zero;
+                    for (float w = 0f; w < 20f && fpc == null; w += 0.5f)
+                    {
+                        foreach (var c in FindObjectsOfType<FirstPersonController>())
+                            if (c.IsOwner && c.enabled) fpc = c;
+                        yield return new WaitForSeconds(0.5f);
+                    }
+                    if (fpc == null) break;
+                    t = fpc.transform;
+                    cc = fpc.characterController;
+                    yield return new WaitForSeconds(1f);
+                }
+                cc.enabled = false; t.position = start; cc.enabled = true;
+                MotorDriver.SetActive(true);
+                MotorDriver.ScriptMove = Vector2.zero;
+                yield return new WaitForSeconds(0.3f);
+                float a = h * 45f * Mathf.Deg2Rad;
+                MotorDriver.ScriptMove = new Vector2(Mathf.Sin(a), Mathf.Cos(a));
+                Vector3 last = t.position;
+                float stall = 0f, nextSample = 0.25f, nextJump = 0.5f;
+                bool reported = false;
+                for (float tt = 0f; tt < 4f; tt += Time.deltaTime)
+                {
+                    if (fpc == null)
+                    {
+                        falls++;
+                        Plugin.Logger.LogInfo($"[test] sweep {map} heading {h * 45}: left the map (void) at {last:F1}");
+                        break;
+                    }
+                    if (tt >= nextJump) { MotorDriver.ScriptJump = true; nextJump += 0.7f; }
+                    MotorDriver.ScriptCrouch = h % 2 == 1 && tt % 1.4f < 0.5f;
+                    var m = MotorDriver.Motor;
+                    maxSpeed = Mathf.Max(maxSpeed, m.HorizontalSpeed);
+                    if (tt >= nextSample)
+                    {
+                        nextSample += 0.25f;
+                        float d = (t.position - last).magnitude;
+                        last = t.position;
+                        stall = !m.IsGroundState && m.State != MoveState.Mantle && d < 0.05f ? stall + 0.25f : 0f;
+                        if (stall >= 0.5f && !reported)
+                        {
+                            reported = true;
+                            stalls++;
+                            var s = MotorDriver.Sensors;
+                            Plugin.Logger.LogWarning($"[test] STALL map={map} heading={h * 45} pos={t.position:F2} state={m.State} vy={m.Velocity.Y:0.00} " +
+                                $"h={s.HeightAboveGround:0.00} wallF={s.WallFront} wallL={s.WallLeft} wallR={s.WallRight} ledge={s.LedgeFound} ceil={s.CeilingBlocked}");
+                            Shot($"vholtat_stall_{map}_{h * 45}.png");
+                        }
+                    }
+                    yield return null;
+                }
+                if (fpc != null)
+                    Plugin.Logger.LogInfo($"[test] sweep {map} heading {h * 45}: ended at {t.position:F1} state {MotorDriver.Motor.State}");
+            }
+            MotorDriver.ScriptActive = false;
+            MotorDriver.ScriptMove = Vector2.zero;
+            Plugin.Logger.LogInfo($"[test] sweep {map}: {stalls} stalls, {falls} runs off the map, top speed {maxSpeed:0.0}");
             Plugin.Logger.LogInfo("[test] done");
         }
 

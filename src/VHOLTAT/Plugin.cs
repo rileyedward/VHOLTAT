@@ -39,6 +39,7 @@ namespace VHOLTAT
         private void Awake()
         {
             gameObject.AddComponent<DebugOverlay.Overlay>();
+            gameObject.AddComponent<DebugOverlay.SpotMarker>();
             gameObject.AddComponent<Dev.AutoTest>();
             gameObject.AddComponent<Net.SettingsSync>();
             gameObject.AddComponent<Net.VersionCheck>();
