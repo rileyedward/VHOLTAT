@@ -86,6 +86,20 @@ namespace VHOLTAT.Adapter
                 RemoteAnimation.Apply(__instance);
         }
 
+        [HarmonyPostfix, HarmonyPatch(nameof(FirstPersonController.AddForce))]
+        private static void AddForce(FirstPersonController __instance)
+        {
+            if (Ours(__instance) && __instance == MotorDriver.Current)
+                MotorDriver.Motor.CancelHorizontal();
+        }
+
+        [HarmonyPostfix, HarmonyPatch(nameof(FirstPersonController.AddHorizontalForce))]
+        private static void AddHorizontalForce(FirstPersonController __instance)
+        {
+            if (Ours(__instance) && __instance == MotorDriver.Current)
+                MotorDriver.Motor.CancelHorizontal();
+        }
+
         [HarmonyPrefix, HarmonyPatch("HandleSlide")]
         private static bool HandleSlide(FirstPersonController __instance) => !Ours(__instance);
 

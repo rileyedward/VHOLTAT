@@ -73,6 +73,17 @@ namespace VHOLTAT.Movement
             }
         }
 
+        /// <summary>
+        /// Knockback that replaces movement (STRAFTAT's AddForce zeroes the player's own velocity before pushing, like
+        /// VHOLUME's launchers): drops horizontal speed and carried boost; the push itself arrives separately.
+        /// </summary>
+        public void CancelHorizontal()
+        {
+            Velocity.X = 0f;
+            Velocity.Z = 0f;
+            Boost = 0f;
+        }
+
         public void Step(in MovementInput input, in MovementSensors sensors, float dt)
         {
             if (dt <= 0f)

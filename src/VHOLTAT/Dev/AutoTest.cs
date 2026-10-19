@@ -121,6 +121,12 @@ namespace VHOLTAT.Dev
             yield return Phase("wr-walljump", 1.2f, Vector2.up, false);
             yield return Phase("wr-stop", 0.6f, Vector2.zero, false);
             Destroy(wall);
+
+            // Knockback the way weapons apply it: STRAFTAT's AddForce stops the player, then pushes.
+            yield return Phase("kb-run", 0.4f, Vector2.up, false);
+            fpc.AddForce(new Vector3(0f, 0.5f, 0f) - fwd, 10f);
+            Plugin.Logger.LogInfo("[test] knockback applied");
+            yield return Phase("kb-push", 1.2f, Vector2.zero, false);
             MotorDriver.ScriptActive = false;
             Plugin.Logger.LogInfo("[test] done");
         }

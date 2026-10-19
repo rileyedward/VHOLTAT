@@ -38,6 +38,12 @@ namespace VHOLTAT.Adapter
             AccessTools.FieldRefAccess<FirstPersonController, Vector3>("bforcefinal");
         private static readonly AccessTools.FieldRef<FirstPersonController, Vector3> ObjectCollisionMove =
             AccessTools.FieldRefAccess<FirstPersonController, Vector3>("objectCollisionMoveDirection");
+        private static readonly AccessTools.FieldRef<FirstPersonController, float> SetSpeedTimer =
+            AccessTools.FieldRefAccess<FirstPersonController, float>("setSpeedTimer");
+        private static readonly AccessTools.FieldRef<FirstPersonController, float> TempSetSpeed =
+            AccessTools.FieldRefAccess<FirstPersonController, float>("tempSetSpeed");
+        private static readonly AccessTools.FieldRef<FirstPersonController, float> SprintSpeed =
+            AccessTools.FieldRefAccess<FirstPersonController, float>("sprintSpeed");
         private static readonly AccessTools.FieldRef<FirstPersonController, bool> CanJump =
             AccessTools.FieldRefAccess<FirstPersonController, bool>("canJump");
         private static readonly AccessTools.FieldRef<FirstPersonController, NetworkAnimator> NetAnimator =
@@ -148,7 +154,7 @@ namespace VHOLTAT.Adapter
                 Forward = SensorProbe.ToVec(fwd),
                 Right = SensorProbe.ToVec(right),
                 Look = SensorProbe.ToVec(fpc.playerCamera.transform.forward),
-                SpeedScale = fpc.movementFactor,
+                SpeedScale = fpc.movementFactor * FireSlowdown(fpc),
             };
             jumpQueued = false;
             lastCrouch = crouch;
@@ -172,6 +178,18 @@ namespace VHOLTAT.Adapter
             AfterMove(cc, flags);
             PlayEvents(fpc);
             return true;
+        }
+
+        /// <summary>
+        /// Some weapons slow the shooter for a moment (Weapon.OnShoot -> SetSpeed, an absolute vanilla speed). Applied as
+        /// the same fraction of vanilla sprint speed.
+        /// </summary>
+        private static float FireSlowdown(FirstPersonController fpc)
+        {
+            if (SetSpeedTimer(fpc) <= 0f)
+                return 1f;
+            float sprint = SprintSpeed(fpc);
+            return sprint > 0.1f ? Mathf.Clamp01(TempSetSpeed(fpc) / sprint) : 1f;
         }
 
         private static void AfterMove(CharacterController cc, CollisionFlags flags)
