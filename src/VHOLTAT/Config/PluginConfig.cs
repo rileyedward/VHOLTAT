@@ -31,6 +31,7 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<float> FovFullSpeed;
         public readonly ConfigEntry<float> FovLerp;
         public readonly ConfigEntry<float> WallRunRoll;
+        public readonly ConfigEntry<bool> UseHostSettings;
         public readonly ConfigEntry<bool> DevAutoTest;
         public readonly ConfigEntry<string> DevTestMap;
         public readonly ConfigEntry<string> DevTestMode;
@@ -55,6 +56,9 @@ namespace VHOLTAT.Config
             FovFullSpeed = file.Bind("Camera", "FovFullSpeed", 26f, "Speed (m/s) where the FOV bonus is complete.");
             FovLerp = file.Bind("Camera", "FovLerp", 6f, "How fast the FOV follows speed.");
             WallRunRoll = file.Bind("Camera", "WallRunRoll", 10f, "Camera roll (degrees) away from the wall while wall running.");
+            UseHostSettings = file.Bind("Multiplayer", "UseHostSettings", true,
+                "In someone else's lobby, move with the host's VHOLTAT settings (preset and every number) so everyone " +
+                "plays by the same rules. Your own config comes back when you leave.");
             DevAutoTest = file.Bind("Dev", "AutoTest", false,
                 "Developer self-test: enters TestMap from the menu, drives a scripted run/slide/jump and logs it.");
             DevTestMode = file.Bind("Dev", "TestMode", "basic", "basic = run/slide/jump sequence; parkour = spawned ledge + side wall (mantle, wall run, wall jump).");
@@ -75,8 +79,47 @@ namespace VHOLTAT.Config
             file.SettingChanged += (_, __) => Apply();
         }
 
+        /// <summary>True while the host's settings are applied over the local config.</summary>
+        public bool RemoteActive { get; private set; }
+
+        public int MovementFieldCount => movementEntries.Count;
+
+        /// <summary>Writes the local preset + movement values (config order) for the host's broadcast.</summary>
+        public void WriteLocal(System.IO.BinaryWriter w)
+        {
+            w.Write((byte)Preset.Value);
+            w.Write(movementEntries.Count);
+            foreach (var pair in movementEntries)
+                w.Write(pair.Value.Value);
+        }
+
+        /// <summary>Applies the host's values on top of the local config. Returns false if the layout doesn't match.</summary>
+        public bool ApplyRemote(System.IO.BinaryReader r)
+        {
+            var preset = (MomentumPreset)r.ReadByte();
+            int n = r.ReadInt32();
+            if (n != movementEntries.Count)
+                return false;
+            foreach (var pair in movementEntries)
+                pair.Key.SetValue(Movement, r.ReadSingle());
+            Movement.Playtest2Model = preset == MomentumPreset.Playtest2;
+            RemoteActive = true;
+            return true;
+        }
+
+        /// <summary>Back to the local config (left the lobby, or became host).</summary>
+        public void ClearRemote()
+        {
+            if (!RemoteActive)
+                return;
+            RemoteActive = false;
+            Apply();
+        }
+
         private void Apply()
         {
+            if (RemoteActive)
+                return;
             foreach (var pair in movementEntries)
                 pair.Key.SetValue(Movement, pair.Value.Value);
             Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
