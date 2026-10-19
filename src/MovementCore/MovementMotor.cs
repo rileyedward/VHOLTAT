@@ -32,7 +32,9 @@ namespace VHOLTAT.Movement
         private float wallJumpGraceTimer;
         private Vec3 graceWallNormal;
         private bool jumpedThisAir;
-        private bool leftBlocked, rightBlocked;
+        /// <summary>The wall just left can't be run again until landing or touching a different wall.</summary>
+        private bool hasBlockedWall;
+        private Vec3 blockedWallNormal;
         private bool climbUsed;
         private Vec3 mantleTarget;
         private Vec3 mantleExitDir;
@@ -52,7 +54,7 @@ namespace VHOLTAT.Movement
             coyoteTimer = jumpBufferTimer = wallJumpGraceTimer = 0f;
             sinceLanding = 999f;
             jumpedThisAir = false;
-            leftBlocked = rightBlocked = climbUsed = false;
+            hasBlockedWall = climbUsed = false;
         }
 
         /// <summary>External velocity change (explosions, knockback, jump pads).</summary>
@@ -166,7 +168,7 @@ namespace VHOLTAT.Movement
                 Events |= MoveEvents.WallRunEnded;
             sinceLanding = 0f;
             jumpedThisAir = false;
-            leftBlocked = rightBlocked = climbUsed = false;
+            hasBlockedWall = climbUsed = false;
             wallJumpGraceTimer = 0f;
             Velocity.Y = 0f;
 
@@ -471,8 +473,8 @@ namespace VHOLTAT.Movement
                 return false;
             Vec3 dir = flat / speed;
 
-            bool right = sensors.WallRight && !rightBlocked && IsRunnableWall(sensors.WallRightNormal, dir);
-            bool left = !right && sensors.WallLeft && !leftBlocked && IsRunnableWall(sensors.WallLeftNormal, dir);
+            bool right = sensors.WallRight && !IsBlocked(sensors.WallRightNormal) && IsRunnableWall(sensors.WallRightNormal, dir);
+            bool left = !right && sensors.WallLeft && !IsBlocked(sensors.WallLeftNormal) && IsRunnableWall(sensors.WallLeftNormal, dir);
             if (!right && !left)
                 return false;
 
@@ -510,7 +512,7 @@ namespace VHOLTAT.Movement
             bool right = State == MoveState.WallRunRight;
             if (jumpBufferTimer > 0f)
             {
-                BlockSide(right);
+                BlockWall();
                 Events |= MoveEvents.WallRunEnded;
                 WallJump(in input, WallNormal);
                 return;
@@ -561,18 +563,22 @@ namespace VHOLTAT.Movement
 
         private void EndWallRun(bool right)
         {
-            BlockSide(right);
+            BlockWall();
             graceWallNormal = WallNormal;
             wallJumpGraceTimer = S.WallJumpGrace;
             Events |= MoveEvents.WallRunEnded;
             SetState(MoveState.Air);
         }
 
-        private void BlockSide(bool right)
+        private void BlockWall()
         {
-            if (right) rightBlocked = true;
-            else leftBlocked = true;
+            hasBlockedWall = true;
+            blockedWallNormal = WallNormal.Flat.Normalized;
         }
+
+        /// <summary>Same wall plane as the one just left (normals within ~18 degrees).</summary>
+        private bool IsBlocked(Vec3 normal) =>
+            hasBlockedWall && Vec3.Dot(normal.Flat.Normalized, blockedWallNormal) > 0.95f;
 
         /// <summary>
         /// Jump off a wall: fixed upward speed, horizontal speed kept, heading toward the look direction but at
@@ -684,7 +690,8 @@ namespace VHOLTAT.Movement
         private void UpdateMantle(in MovementSensors sensors, float dt)
         {
             Vec3 to = mantleTarget - sensors.Position;
-            if (StateTime >= S.MantleMaxTime || to.SqrMagnitude < 0.0025f)
+            // Done once risen to the ledge and over its edge (the capsule may settle a little above the target).
+            if (StateTime >= S.MantleMaxTime || (to.Y <= 0.05f && to.Flat.SqrMagnitude < 0.0025f))
             {
                 Velocity = mantleExitDir * mantleExitSpeed;
                 SetState(MoveState.Air);

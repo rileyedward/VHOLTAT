@@ -14,3 +14,18 @@
   slide-start skin-width pop (slide flagged one frame early).
 - Open: speed scale vs vanilla (VHOLTAT run 13 m/s vs STRAFTAT sprint 8.5); wall-run camera tilt and remote
   wall-run animation; mantle needs a real ledge test.
+
+## 2026-10-19 — momentum, presets, parkour test
+
+- Playtests 1–3 with Riley. Momentum now follows VHOLUME's carry rules (docs/MOMENTUM_SPEC.md): speed above each
+  state's base is a boost that never decays in air, decays 0.8/s on ground and 0.1/s on walls, bunny hops restore
+  landing speed, wall run entry turns extra air speed into boost (wall-to-wall chains stack), air steering only turns.
+  Riley rated feel test 3 (Vholume preset) the best and closest to VHOLUME; that feel is the baseline now.
+- Playtest 2's skill-fed boost is kept as the Playtest2 preset (F8 switches live).
+- Fix: wall bounces stopped after 4–5 walls because each side was blocked until landing; now only the wall just
+  left is blocked.
+- Host shares its movement settings with clients (FishNet broadcast, 2 s heartbeat); untested with two players.
+- Remote animation for wall run / climb; camera FOV by speed and wall-run roll.
+- Parkour self-test ([Dev] TestMode = parkour) spawns a 2 m ledge and a side wall: mantle onto the ledge in ~0.3 s
+  keeping 95% speed, wall run at 16.5 m/s with the +2 m/s rise, wall jump off it. No exceptions.
+- Local release packaging: tools/release/build-release.ps1 -> dist/ (Thunderstore layout + manual zip).

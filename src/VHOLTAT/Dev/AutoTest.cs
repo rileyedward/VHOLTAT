@@ -84,7 +84,7 @@ namespace VHOLTAT.Dev
             Plugin.Logger.LogInfo("[test] done");
         }
 
-        /// <summary>Spawns a 1.3 m ledge ahead (mantle), then a long wall on the right (wall run + wall jump).</summary>
+        /// <summary>Spawns a 2 m ledge ahead (mantle), then a long wall on the right (wall run + wall jump).</summary>
         private IEnumerator Parkour(FirstPersonController fpc)
         {
             Transform t = fpc.transform;
@@ -95,7 +95,7 @@ namespace VHOLTAT.Dev
             var cc = fpc.characterController;
             float feet = cc.bounds.min.y;
 
-            var ledge = Box("vholtat_test_ledge", start + fwd * 7f, fwd, new Vector3(4f, 1.3f, 2f), feet, layer);
+            var ledge = Box("vholtat_test_ledge", start + fwd * 7f, fwd, new Vector3(4f, 2.0f, 2f), feet, layer);
             MotorDriver.ScriptActive = true;
             yield return Phase("pk-stand", 0.3f, Vector2.zero, false);
             yield return Phase("pk-run", 0.3f, Vector2.up, false);
