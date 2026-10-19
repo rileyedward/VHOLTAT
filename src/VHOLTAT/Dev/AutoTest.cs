@@ -14,7 +14,14 @@ namespace VHOLTAT.Dev
     /// </summary>
     internal sealed class AutoTest : MonoBehaviour
     {
-        private bool entered, tested;
+        private bool entered, tested, holdW;
+
+        private void Update()
+        {
+            if (holdW && UnityEngine.InputSystem.Keyboard.current != null)
+                UnityEngine.InputSystem.InputSystem.QueueStateEvent(UnityEngine.InputSystem.Keyboard.current,
+                    new UnityEngine.InputSystem.LowLevel.KeyboardState(UnityEngine.InputSystem.Key.W));
+        }
 
         private void OnEnable() => SceneManager.sceneLoaded += OnSceneLoaded;
         private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -149,6 +156,29 @@ namespace VHOLTAT.Dev
             fpc.AddForce(new Vector3(0f, 0.5f, 0f) - fwd, 10f);
             Plugin.Logger.LogInfo("[test] knockback applied");
             yield return Phase("kb-push", 1.2f, Vector2.zero, false);
+            // Ladder: a 4 m panel on STRAFTAT's ladder layer straight ahead; holding forward should climb at ladder speed.
+            cc.enabled = false; t.position = start; cc.enabled = true;
+            MotorDriver.SetActive(true);
+            yield return Phase("ld-reset", 0.3f, Vector2.zero, false);
+            var ladderMask = HarmonyLib.Traverse.Create(fpc).Field("ladderLayer").GetValue<LayerMask>();
+            var ladder = Box("vholtat_test_ladder", start + fwd * 1.2f, fwd, new Vector3(1.5f, 4f, 0.3f), feet, FirstLayer(ladderMask.value));
+            // Vanilla only climbs when its own move action reads input, so hold a real W key through the input system.
+            holdW = true;
+            yield return Phase("ld-climb", 1.5f, Vector2.up, false);
+            holdW = false;
+            UnityEngine.InputSystem.InputSystem.QueueStateEvent(UnityEngine.InputSystem.Keyboard.current, new UnityEngine.InputSystem.LowLevel.KeyboardState());
+            Destroy(ladder);
+            yield return Phase("ld-off", 0.8f, Vector2.zero, false);
+
+            // Jump pad: a boosted teleport (what STRAFTAT's pads and teleporters do) launching up and forward.
+            var pad = new GameObject("vholtat_test_pad").transform;
+            pad.position = t.position;
+            pad.rotation = Quaternion.LookRotation((fwd + Vector3.up).normalized, Vector3.up);
+            fpc.Teleport(t.position, 0f, true, pad, 12f, 8f, true);
+            Plugin.Logger.LogInfo("[test] pad launch applied");
+            yield return Phase("pad", 1.5f, Vector2.zero, false);
+            Destroy(pad.gameObject);
+
             MotorDriver.ScriptActive = false;
             Plugin.Logger.LogInfo("[test] done");
         }
