@@ -1,6 +1,6 @@
 {
   "name": "VHOLTAT",
-  "version_number": "0.0.1",
+  "version_number": "0.1.0",
   "website_url": "",
   "description": "Parkour movement for STRAFTAT: momentum, slides, wall runs, wall jumps, climbs and mantles.",
   "dependencies": [

@@ -11,7 +11,7 @@
     <BepInExPluginName>VHOLTAT</BepInExPluginName>
     <Product>VHOLTAT</Product>
     <Description>Parkour movement (momentum, slide, wall run, mantle) for STRAFTAT</Description>
-    <Version>0.0.1</Version>
+    <Version>0.1.0</Version>
     <RestoreAdditionalProjectSources>
       https://api.nuget.org/v3/index.json;
       https://nuget.bepinex.dev/v3/index.json
