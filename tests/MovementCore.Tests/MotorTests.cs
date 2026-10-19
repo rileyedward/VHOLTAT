@@ -377,6 +377,32 @@ public class MotorTests
     }
 
     [Fact]
+    public void CanBounceBetweenTwoWallsIndefinitely()
+    {
+        var m = new MovementMotor(new MovementSettings());
+        m.Reset(new Vec3(0f, 0f, 14f), grounded: false);
+        var right = Ground(false);
+        right.WallRight = true;
+        right.WallRightNormal = new Vec3(-1f, 0f, 0f);
+        var left = Ground(false);
+        left.WallLeft = true;
+        left.WallLeftNormal = new Vec3(1f, 0f, 0f);
+
+        for (int bounce = 0; bounce < 10; bounce++)
+        {
+            var wall = bounce % 2 == 0 ? right : left;
+            m.Step(Input(moveY: 1f), wall, Dt);
+            Assert.True(m.State == MoveState.WallRunLeft || m.State == MoveState.WallRunRight, $"bounce {bounce}: {m.State}");
+            Run(m, Input(moveY: 1f), wall, 0.1f);
+            m.Step(Input(moveY: 1f, jump: true), wall, Dt);
+            // The wall just left stays blocked.
+            m.Step(Input(moveY: 1f), wall, Dt);
+            Assert.Equal(MoveState.Air, m.State);
+            Run(m, Input(moveY: 1f), Ground(false), 0.15f);
+        }
+    }
+
+    [Fact]
     public void RotateTowardsFlatTurnsTheShortWay()
     {
         var r = MovementMotor.RotateTowardsFlat(Fwd, Rgt, 0.1f);
