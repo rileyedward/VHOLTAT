@@ -35,6 +35,9 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<float> FovFullSpeed;
         public readonly ConfigEntry<float> FovLerp;
         public readonly ConfigEntry<float> WallRunRoll;
+        public readonly ConfigEntry<float> StrafeTilt;
+        public readonly ConfigEntry<bool> VholumeWallRunRoll;
+        public readonly ConfigEntry<bool> VholumeFov;
         public readonly ConfigEntry<bool> UseHostSettings;
         public readonly ConfigEntry<int> RemoteInterpolationTicks;
         public readonly ConfigEntry<bool> DevAutoTest;
@@ -64,6 +67,12 @@ namespace VHOLTAT.Config
             FovFullSpeed = file.Bind("Camera", "FovFullSpeed", 26f, "Speed (m/s) where the FOV bonus is complete.");
             FovLerp = file.Bind("Camera", "FovLerp", 6f, "How fast the FOV follows speed.");
             WallRunRoll = file.Bind("Camera", "WallRunRoll", 10f, "Camera roll (degrees) away from the wall while wall running.");
+            StrafeTilt = file.Bind("Camera", "StrafeTilt", 3f,
+                "Head tilt (degrees) into the strafe direction, scaled by speed up to run speed (VHOLUME: 3). 0 = off.");
+            VholumeWallRunRoll = file.Bind("Camera", "VholumeWallRunRoll", false,
+                "Use VHOLUME's wall-run roll instead: 6 degrees toward the wall.");
+            VholumeFov = file.Bind("Camera", "VholumeFov", false,
+                "Use VHOLUME's FOV kicks instead of the speed-based FOV: +5 when running fast, +10 sliding, +15 wall running.");
             UseHostSettings = file.Bind("Multiplayer", "UseHostSettings", true,
                 "In someone else's lobby, move with the host's VHOLTAT settings (preset and every number) so everyone " +
                 "plays by the same rules. Your own config comes back when you leave.");

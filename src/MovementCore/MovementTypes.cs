@@ -29,6 +29,7 @@ namespace VHOLTAT.Movement
         MantleStarted = 1 << 8,
         CoyoteJump = 1 << 9,
         BufferedJump = 1 << 10,
+        VaultStarted = 1 << 11,
     }
 
     /// <summary>One frame of player intent. Directions are unit vectors in world space, Y up.</summary>
@@ -62,5 +63,10 @@ namespace VHOLTAT.Movement
         /// <summary>A ledge the player can be pulled onto, and the feet position on top of it.</summary>
         public bool LedgeFound;
         public Vec3 LedgeTarget;
+
+        /// <summary>Waist-high cover ahead that can be vaulted from the ground, its standing spot and its height above the feet.</summary>
+        public bool VaultFound;
+        public Vec3 VaultTarget;
+        public float VaultHeight;
     }
 }

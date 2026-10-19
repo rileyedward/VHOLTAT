@@ -39,6 +39,11 @@ namespace VHOLTAT.Movement
         private Vec3 blockedWallNormal;
         private bool climbUsed;
         private Vec3 mantleTarget;
+        private float mantleRiseSpeed;
+        /// <summary>Best horizontal speed over roughly the last second (10 slots of 0.1 s).</summary>
+        private readonly float[] speedHistory = new float[10];
+        private int speedSlot;
+        private float speedSlotTime;
         private Vec3 mantleExitDir;
         private float mantleExitSpeed;
 
@@ -98,6 +103,7 @@ namespace VHOLTAT.Movement
                 jumpBufferTimer = S.JumpBufferTime;
 
             DecayBoost(dt);
+            RecordSpeed(dt);
             HandleGroundTransitions(in input, in sensors);
 
             switch (State)
@@ -227,6 +233,12 @@ namespace VHOLTAT.Movement
         {
             if (TryGroundJump())
                 return;
+
+            if (sensors.VaultFound && input.MoveY > 0.5f && HorizontalSpeed >= S.VaultMinSpeed)
+            {
+                StartVault(in input, in sensors);
+                return;
+            }
 
             if (input.CrouchPressed && HorizontalSpeed >= S.SlideMinStartSpeed)
             {
@@ -539,9 +551,13 @@ namespace VHOLTAT.Movement
             }
 
             bool hasWall = right ? sensors.WallRight : sensors.WallLeft;
-            if (hasWall)
+            bool frontSameWall = !hasWall && sensors.WallFront
+                && Vec3.Dot(sensors.WallFrontNormal.Flat.Normalized, WallNormal.Flat.Normalized) > 0.9f;
+            if (hasWall || frontSameWall)
             {
-                Vec3 n = right ? sensors.WallRightNormal : sensors.WallLeftNormal;
+                // Running along a wall we're facing (e.g. after turning a climb into a run) counts too.
+                Vec3 n = hasWall ? (right ? sensors.WallRightNormal : sensors.WallLeftNormal) : sensors.WallFrontNormal;
+                hasWall = true;
                 if (Math.Abs(n.Y) <= S.WallMaxNormalY)
                     WallNormal = n;
                 else
@@ -550,7 +566,10 @@ namespace VHOLTAT.Movement
 
             Vec3 nFlat = WallNormal.Flat.Normalized;
             float awayInput = Vec3.Dot(WishDir(in input), nFlat);
-            if (!hasWall || StateTime >= S.WallRunDuration || awayInput > S.WallRunPushOff || input.MoveY <= 0f)
+            // Input must keep pushing along the run (forward on a side wall, sideways on a wall we face).
+            Vec3 runDir = Velocity.Flat.Normalized;
+            bool driving = Vec3.Dot(WishDir(in input), runDir) > 0.1f;
+            if (!hasWall || StateTime >= S.WallRunDuration || awayInput > S.WallRunPushOff || !driving)
             {
                 EndWallRun(right);
                 AirSteer(WishDir(in input), dt);
@@ -683,6 +702,12 @@ namespace VHOLTAT.Movement
                 return;
             }
 
+            if (Math.Abs(input.MoveX) >= S.WallClimbToRunInput && sensors.WallFront)
+            {
+                ClimbToWallRun(in input);
+                return;
+            }
+
             if (!sensors.WallFront || input.MoveY <= 0.1f || StateTime >= S.WallClimbDuration)
             {
                 SetState(MoveState.Air);
@@ -696,7 +721,68 @@ namespace VHOLTAT.Movement
             Velocity.Y = vy;
         }
 
+        /// <summary>Strafing during a climb turns it into a wall run along the same wall.</summary>
+        private void ClimbToWallRun(in MovementInput input)
+        {
+            Vec3 nFlat = WallNormal.Flat.Normalized;
+            Vec3 along = Vec3.ProjectOnPlane(input.Right * (input.MoveX > 0f ? 1f : -1f), nFlat).Normalized;
+            if (along.SqrMagnitude < 0.01f)
+                return;
+            Vec3 rightOfTravel = Vec3.Cross(Vec3.Up, along);
+            bool wallOnRight = Vec3.Dot(-nFlat, rightOfTravel) > 0f;
+            float vy = Velocity.Y * S.WallClimbToRunVertical;
+            Velocity = along * (S.WallRunSpeed + Boost);
+            Velocity.Y = vy;
+            SetState(wallOnRight ? MoveState.WallRunRight : MoveState.WallRunLeft);
+            Events |= MoveEvents.WallRunStarted;
+        }
+
         // ---------------------------------------------------------------- mantle
+
+        private void RecordSpeed(float dt)
+        {
+            float h = HorizontalSpeed;
+            speedSlotTime += dt;
+            if (speedSlotTime >= 0.1f)
+            {
+                speedSlotTime = 0f;
+                speedSlot = (speedSlot + 1) % speedHistory.Length;
+                speedHistory[speedSlot] = 0f;
+            }
+            if (h > speedHistory[speedSlot])
+                speedHistory[speedSlot] = h;
+        }
+
+        private float RecentTopSpeed()
+        {
+            float best = 0f;
+            for (int i = 0; i < speedHistory.Length; i++)
+                if (speedHistory[i] > best) best = speedHistory[i];
+            return best;
+        }
+
+        /// <summary>Vault: like a mantle, but from a run, quicker the faster you go, keeping a share of recent speed.</summary>
+        private void StartVault(in MovementInput input, in MovementSensors sensors)
+        {
+            float height = sensors.VaultHeight;
+            float keep, scaleMin, vMin, vMax;
+            if (height <= S.VaultSmallHeight) { keep = S.VaultSmallKeep; scaleMin = S.VaultSmallScaleMin; vMin = S.VaultSmallSpeedMin; vMax = S.VaultSmallSpeedMax; }
+            else if (height <= S.VaultMediumHeight) { keep = S.VaultMediumKeep; scaleMin = S.VaultMediumScaleMin; vMin = S.VaultMediumSpeedMin; vMax = S.VaultMediumSpeedMax; }
+            else { keep = S.VaultLargeKeep; scaleMin = S.VaultLargeScaleMin; vMin = S.VaultLargeSpeedMin; vMax = S.VaultLargeSpeedMax; }
+
+            float pre = Math.Max(RecentTopSpeed(), HorizontalSpeed);
+            float k = vMax > vMin ? Math.Max(0f, Math.Min(1f, (pre - vMin) / (vMax - vMin))) : 1f;
+            float scale = 1f + (scaleMin - 1f) * k;
+
+            var flat = Velocity.Flat;
+            float speed = flat.Magnitude;
+            mantleExitDir = speed > 0.5f ? flat / speed : input.Forward;
+            mantleExitSpeed = Math.Max(S.MantleMinExitSpeed, pre * keep);
+            mantleRiseSpeed = S.MantleSpeed / Math.Max(0.1f, scale);
+            mantleTarget = sensors.VaultTarget;
+            SetState(MoveState.Mantle);
+            Events |= MoveEvents.VaultStarted | MoveEvents.MantleStarted;
+        }
 
         private void StartMantle(in MovementInput input, in MovementSensors sensors)
         {
@@ -705,6 +791,7 @@ namespace VHOLTAT.Movement
             mantleExitDir = speed > 0.5f ? flat / speed : input.Forward;
             mantleExitSpeed = Math.Max(S.MantleMinExitSpeed, speed * S.MantleMomentumKeep);
             mantleTarget = sensors.LedgeTarget;
+            mantleRiseSpeed = S.MantleSpeed;
             SetState(MoveState.Mantle);
             Events |= MoveEvents.MantleStarted;
         }
@@ -722,12 +809,12 @@ namespace VHOLTAT.Movement
 
             // Rise first, then move over the edge, so the capsule doesn't clip the lip.
             if (to.Y > 0.02f)
-                Velocity = new Vec3(0f, Math.Min(S.MantleSpeed, to.Y / dt), 0f);
+                Velocity = new Vec3(0f, Math.Min(mantleRiseSpeed, to.Y / dt), 0f);
             else
             {
                 Vec3 flat = to.Flat;
                 float d = flat.Magnitude;
-                Velocity = d > 0.0001f ? flat / d * Math.Min(Math.Max(S.MantleSpeed, mantleExitSpeed), d / dt) : Vec3.Zero;
+                Velocity = d > 0.0001f ? flat / d * Math.Min(Math.Max(mantleRiseSpeed, mantleExitSpeed), d / dt) : Vec3.Zero;
             }
         }
 

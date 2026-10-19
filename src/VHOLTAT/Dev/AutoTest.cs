@@ -171,6 +171,14 @@ namespace VHOLTAT.Dev
             fpc.AddForce(new Vector3(0f, 0.5f, 0f) - fwd, 10f);
             Plugin.Logger.LogInfo("[test] knockback applied");
             yield return Phase("kb-push", 1.2f, Vector2.zero, false);
+            // Vault: a 0.9 m crate 6 m ahead of a run should be vaulted, keeping ~80 % of the run speed.
+            cc.enabled = false; t.position = start; cc.enabled = true;
+            MotorDriver.SetActive(true);
+            yield return Phase("vt-reset", 0.3f, Vector2.zero, false);
+            var crate = Box("vholtat_test_crate", start + fwd * 6f, fwd, new Vector3(2f, 0.9f, 1f), feet, layer);
+            yield return Phase("vt-run", 1.2f, Vector2.up, false);
+            Destroy(crate);
+
             // Ladder: a 4 m panel on STRAFTAT's ladder layer straight ahead; holding forward should climb at ladder speed.
             cc.enabled = false; t.position = start; cc.enabled = true;
             MotorDriver.SetActive(true);

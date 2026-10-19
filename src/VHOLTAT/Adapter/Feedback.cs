@@ -18,6 +18,8 @@ namespace VHOLTAT.Adapter
             AccessTools.MethodDelegate<Action<FirstPersonController>>(AccessTools.Method(typeof(FirstPersonController), "SlideAudioPlay"));
         private static readonly Action<FirstPersonController> SlideAudioStop =
             AccessTools.MethodDelegate<Action<FirstPersonController>>(AccessTools.Method(typeof(FirstPersonController), "SlideAudioStop"));
+        private static readonly Action<FirstPersonController, string> VaultClip =
+            AccessTools.MethodDelegate<Action<FirstPersonController, string>>(AccessTools.Method(typeof(FirstPersonController), "VaultClip"));
         private static readonly AccessTools.FieldRef<FirstPersonController, AudioSource> SlideAudio =
             AccessTools.FieldRefAccess<FirstPersonController, AudioSource>("slideAudio");
         private static readonly AccessTools.FieldRef<FirstPersonController, AudioSource> MainAudio =
@@ -37,6 +39,11 @@ namespace VHOLTAT.Adapter
             try
             {
                 Audio(fpc, m);
+                if ((m.Events & MoveEvents.MantleStarted) != 0)
+                {
+                    var surface = SensorProbe.LastCoverSurface;
+                    VaultClip(fpc, surface != null ? surface.tag : "Untagged");
+                }
                 LandDip(fpc, m, impactSpeed);
             }
             catch (Exception ex)

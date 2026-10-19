@@ -15,6 +15,14 @@ namespace VHOLTAT.Adapter
         public static float MantleMinHeight = 0.5f;
         /// <summary>Highest ledge above the feet the mantle can reach.</summary>
         public static float MantleMaxHeight = 2.2f;
+        /// <summary>Vault probe reach from the capsule edge (VHOLUME detects vaults 1.5 m out).</summary>
+        public static float VaultReach = 1.1f;
+        /// <summary>Lowest cover worth vaulting (anything lower the capsule steps over).</summary>
+        public static float VaultMinHeight = 0.35f;
+        public static float VaultMaxHeight = 1.4f;
+
+        /// <summary>The surface under the last found ledge / vault top (for the vault sound).</summary>
+        public static Collider LastCoverSurface;
 
         public static void Probe(FirstPersonController fpc, CharacterController cc, Vector3 lookFlat, int mask, ref MovementSensors s)
         {
@@ -50,6 +58,8 @@ namespace VHOLTAT.Adapter
             s.LedgeFound = false;
             if (s.WallFront && !s.Grounded)
                 s.LedgeFound = FindLedge(cc, pos, feet, radius, lookFlat, mask, ref s);
+
+            s.VaultFound = s.Grounded && FindVault(cc, pos, feet, radius, lookFlat, mask, ref s);
         }
 
         private static bool Wall(Vector3 origin, Vector3 dir, float reach, int mask, out Vec3 normal)
@@ -80,6 +90,7 @@ namespace VHOLTAT.Adapter
                 return false;
 
             float ledgeFeet = hit.point.y + 0.02f;
+            LastCoverSurface = hit.collider;
             float height = cc.height;
             Vector3 bottom = new Vector3(hit.point.x, ledgeFeet + radius + 0.01f, hit.point.z);
             Vector3 upper = bottom + Vector3.up * Mathf.Max(0f, height - 2f * radius);
@@ -89,6 +100,45 @@ namespace VHOLTAT.Adapter
             // Target is expressed in transform-position space (the transform may not sit at the feet).
             float offset = pos.y - feet;
             s.LedgeTarget = new Vec3(hit.point.x, ledgeFeet + offset, hit.point.z);
+            return true;
+        }
+
+        /// <summary>Waist-high cover ahead: a low face within reach, a walkable top 0.35-1.4 m up, room to pass over it.</summary>
+        private static bool FindVault(CharacterController cc, Vector3 pos, float feet, float radius, Vector3 fwd, int mask, ref MovementSensors s)
+        {
+            Vector3 low = new Vector3(pos.x, feet + VaultMinHeight + 0.05f, pos.z);
+            if (!Physics.Raycast(low, fwd, out RaycastHit face, radius + VaultReach, mask, NoTriggers) || Mathf.Abs(face.normal.y) > 0.5f)
+                return false;
+
+            // Cover stands on the floor we're on; rising ground just before the face means stairs or a slope.
+            Vector3 before = face.point - fwd * 0.2f;
+            if (Physics.Raycast(new Vector3(before.x, feet + VaultMinHeight, before.z), Vector3.down, out RaycastHit floor, VaultMinHeight + 0.3f, mask, NoTriggers)
+                && floor.point.y > feet + 0.15f)
+                return false;
+
+            // Clear path above the cover at head-ish height.
+            if (Physics.Raycast(new Vector3(pos.x, feet + VaultMaxHeight + 0.3f, pos.z), fwd, face.distance + 0.4f, mask, NoTriggers))
+                return false;
+
+            Vector3 over = new Vector3(face.point.x, feet + VaultMaxHeight + 0.2f, face.point.z) + fwd * 0.3f;
+            if (!Physics.Raycast(over, Vector3.down, out RaycastHit top, VaultMaxHeight + 0.2f - VaultMinHeight + 0.05f, mask, NoTriggers))
+                return false;
+            if (top.normal.y < 0.88f)
+                return false;
+            float height = top.point.y - feet;
+            if (height < VaultMinHeight || height > VaultMaxHeight)
+                return false;
+
+            float ledgeFeet = top.point.y + 0.02f;
+            LastCoverSurface = top.collider;
+            Vector3 bottom = new Vector3(top.point.x, ledgeFeet + radius + 0.01f, top.point.z);
+            Vector3 upper = bottom + Vector3.up * Mathf.Max(0f, cc.height - 2f * radius);
+            if (Physics.CheckCapsule(bottom, upper, radius * 0.95f, mask, NoTriggers))
+                return false;
+
+            float offset = pos.y - feet;
+            s.VaultTarget = new Vec3(top.point.x, ledgeFeet + offset, top.point.z);
+            s.VaultHeight = height;
             return true;
         }
 
