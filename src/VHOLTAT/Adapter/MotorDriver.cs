@@ -140,7 +140,7 @@ namespace VHOLTAT.Adapter
 
             Vector2 mv = blocked ? Vector2.zero : fpc.move.ReadValue<Vector2>();
             bool crouch = !blocked && fpc.isCrouching;
-            if (ScriptActive)
+            if (ScriptActive && !blocked)
             {
                 mv = ScriptMove;
                 crouch = ScriptCrouch;

@@ -35,13 +35,22 @@ namespace VHOLTAT.Dev
             if (scene.name == "MainMenu" && !entered)
             {
                 entered = true;
-                StartCoroutine(Enter());
+                StartCoroutine(Plugin.Settings.DevTestMode.Value == "match" ? EnterMatch() : Enter());
             }
             else if (scene.name == Plugin.Settings.DevTestMap.Value && !tested)
             {
                 tested = true;
                 StartCoroutine(Run());
             }
+        }
+
+        private IEnumerator EnterMatch()
+        {
+            yield return new WaitForSeconds(8f);
+            while (!DevNet.Ready) yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(2f);
+            tested = true; // the match drives itself
+            yield return MatchTest.Host();
         }
 
         private IEnumerator Enter()
