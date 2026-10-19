@@ -335,6 +335,48 @@ public class MotorTests
     }
 
     [Fact]
+    public void MantleRisesThenMovesOntoLedgeAndKeepsMomentum()
+    {
+        var m = new MovementMotor(new MovementSettings());
+        m.Reset(new Vec3(0f, 2f, 10f), grounded: false);
+        var s = Ground(false);
+        s.Position = new Vec3(0f, 0.5f, 0f);
+        s.WallFront = true;
+        s.WallFrontNormal = new Vec3(0f, 0f, -1f);
+        s.LedgeFound = true;
+        s.LedgeTarget = new Vec3(0f, 1.3f, 0.9f);
+        m.Step(Input(moveY: 1f), s, Dt);
+        Assert.Equal(MoveState.Mantle, m.State);
+
+        // Integrate position like the adapter would; the motor must finish within MantleMaxTime.
+        var pos = s.Position;
+        bool rose = false;
+        for (int i = 0; i < 120 && m.State == MoveState.Mantle; i++)
+        {
+            s.Position = pos;
+            m.Step(Input(moveY: 1f), s, Dt);
+            if (m.Velocity.Y > 0f) rose = true;
+            pos = pos + m.Velocity * Dt;
+        }
+        Assert.True(rose);
+        Assert.NotEqual(MoveState.Mantle, m.State);
+        Assert.True(pos.Y >= 1.25f, $"ended on top: {pos}");
+        Assert.True(m.HorizontalSpeed >= 10f * m.S.MantleMomentumKeep - 0.01f, "momentum kept");
+    }
+
+    [Fact]
+    public void NoMantleWithoutForwardInput()
+    {
+        var m = new MovementMotor(new MovementSettings());
+        m.Reset(new Vec3(0f, 2f, 0f), grounded: false);
+        var s = Ground(false);
+        s.LedgeFound = true;
+        s.LedgeTarget = new Vec3(0f, 1.3f, 0.9f);
+        m.Step(Input(), s, Dt);
+        Assert.Equal(MoveState.Air, m.State);
+    }
+
+    [Fact]
     public void RotateTowardsFlatTurnsTheShortWay()
     {
         var r = MovementMotor.RotateTowardsFlat(Fwd, Rgt, 0.1f);
