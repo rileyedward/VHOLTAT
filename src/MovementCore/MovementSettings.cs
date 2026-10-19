@@ -33,6 +33,25 @@ namespace VHOLTAT.Movement
         /// <summary>Speed lost on each landing while above the run cap.</summary>
         public float HopLandingLoss = 0.21f;
 
+        // Momentum (speed boost). VHOLUME keeps one boost value added on top of every state's base speed
+        // (run, slide, wall run). It decays exponentially on the ground (0.8/s) and on walls (0.1/s), never in the air.
+        // VHOLUME only gains boost from level pads/wind; STRAFTAT has none, so chained moves feed it instead.
+        public float BoostMax = 12f;
+        public float BoostDecayGround = 0.8f;
+        public float BoostDecaySlide = 0.8f;
+        public float BoostDecayWallRun = 0.1f;
+        /// <summary>On landing, this fraction of speed above the new state's base+boost is kept as boost.</summary>
+        public float LandingCarry = 0.5f;
+        /// <summary>Boost added by jumping out of a slide within the hop window after landing.</summary>
+        public float SlideHopGain = 0.75f;
+        /// <summary>Boost added by every wall jump.</summary>
+        public float WallJumpGain = 1f;
+        /// <summary>Jumping this soon after landing is a perfect hop.</summary>
+        public float PerfectHopWindow = 0.034f;
+        public float PerfectHopGain = 0.5f;
+        /// <summary>Multiplier on the speed gained sliding downhill (goes into boost).</summary>
+        public float SlideSlopeGain = 1f;
+
         // Slide
         public float SlideMinStartSpeed = 7f;
         public float SlideSpeed = 16f;
@@ -45,7 +64,7 @@ namespace VHOLTAT.Movement
         public float SlopeMedium = -0.25f;
         public float SlopeSteep = -0.5f;
         /// <summary>Flat slides hold speed this long, then friction starts (keeps slides from being endless).</summary>
-        public float SlideHoldTime = 1.5f;
+        public float SlideHoldTime = 3f;
         public float SlideFriction = 6f;
         /// <summary>How fast a slide can turn toward the move input, degrees per second.</summary>
         public float SlideSteerRate = 60f;
