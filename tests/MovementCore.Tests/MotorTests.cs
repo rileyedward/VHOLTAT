@@ -105,7 +105,7 @@ public class MotorTests
             y += m.Velocity.Y * Dt;
             apex = Math.Max(apex, y);
         }
-        Assert.InRange(apex, 1.4f, 1.55f); // spec: 1.48 m
+        Assert.InRange(apex, 1.12f, 1.25f); // 8^2 / (2 * 21.56 * 1.25) = 1.19 m
     }
 
     [Fact]
@@ -399,6 +399,28 @@ public class MotorTests
             m.Step(Input(moveY: 1f), wall, Dt);
             Assert.Equal(MoveState.Air, m.State);
             Run(m, Input(moveY: 1f), Ground(false), 0.15f);
+        }
+    }
+
+    [Fact]
+    public void ExactVholumeJumpReachesSpecApexAndFallIsUnchanged()
+    {
+        foreach (bool exact in new[] { true, false })
+        {
+            var m = new MovementMotor(new MovementSettings { ExactVholumeJump = exact });
+            m.Reset(Vec3.Zero, grounded: true);
+            m.Step(Input(jump: true), Ground(), Dt);
+            float y = 0f, apex = 0f, fallSpeedAt05 = 0f, sinceApex = -1f;
+            for (int i = 0; i < 240; i++)
+            {
+                m.Step(Input(), Ground(false), Dt);
+                y += m.Velocity.Y * Dt;
+                apex = Math.Max(apex, y);
+                if (m.Velocity.Y <= 0f && sinceApex < 0f) sinceApex = 0f;
+                if (sinceApex >= 0f) { sinceApex += Dt; if (sinceApex <= 0.5f) fallSpeedAt05 = m.Velocity.Y; }
+            }
+            if (exact) Assert.InRange(apex, 1.4f, 1.55f); // spec 1.48 m
+            Assert.InRange(fallSpeedAt05, -21.56f * 0.5f - 0.3f, -21.56f * 0.5f + 0.3f); // normal gravity after the apex
         }
     }
 

@@ -26,6 +26,13 @@ namespace VHOLTAT.Movement
         public float JumpSpeed = 8f;
         public float CoyoteTime = 0.33f;
         public float JumpBufferTime = 0.1f;
+        /// <summary>
+        /// Gravity multiplier while rising after a ground jump (slide jumps, hops and coyote jumps too). 1 = VHOLUME
+        /// exact (1.48 m, 0.37 s up). Higher makes the jump snappier and smaller; the fall and wall moves are unaffected.
+        /// </summary>
+        public float JumpRiseGravity = 1.25f;
+        /// <summary>Ignore JumpRiseGravity (VHOLUME's exact jump). Toggled live by the plugin for comparison.</summary>
+        public bool ExactVholumeJump;
 
         // Bunny hop
         /// <summary>After landing, jumping again within this window keeps speed above the run cap.</summary>
