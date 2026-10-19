@@ -33,6 +33,7 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<float> WallRunRoll;
         public readonly ConfigEntry<bool> DevAutoTest;
         public readonly ConfigEntry<string> DevTestMap;
+        public readonly ConfigEntry<string> DevTestMode;
 
         public readonly MovementSettings Movement = new MovementSettings();
 
@@ -56,6 +57,7 @@ namespace VHOLTAT.Config
             WallRunRoll = file.Bind("Camera", "WallRunRoll", 10f, "Camera roll (degrees) away from the wall while wall running.");
             DevAutoTest = file.Bind("Dev", "AutoTest", false,
                 "Developer self-test: enters TestMap from the menu, drives a scripted run/slide/jump and logs it.");
+            DevTestMode = file.Bind("Dev", "TestMode", "basic", "basic = run/slide/jump sequence; parkour = spawned ledge + side wall (mantle, wall run, wall jump).");
             DevTestMap = file.Bind("Dev", "TestMap", "Arena_00", "Map for the self-test (exploration mode).");
             ShowOverlay = file.Bind("Debug", "ShowOverlay", false, "Shows speed, state, grounded and wall info.");
             OverlayKey = file.Bind("Debug", "OverlayKey", KeyCode.F7, "Shows/hides the debug overlay.");
