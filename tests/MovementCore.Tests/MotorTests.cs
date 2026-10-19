@@ -105,7 +105,7 @@ public class MotorTests
             y += m.Velocity.Y * Dt;
             apex = Math.Max(apex, y);
         }
-        Assert.InRange(apex, 1.12f, 1.25f); // 8^2 / (2 * 21.56 * 1.25) = 1.19 m
+        Assert.InRange(apex, 1.26f, 1.40f); // 8^2 / (2 * 21.56 * 1.12) = 1.33 m
     }
 
     [Fact]

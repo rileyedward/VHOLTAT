@@ -30,7 +30,7 @@ namespace VHOLTAT.Movement
         /// Gravity multiplier while rising after a ground jump (slide jumps, hops and coyote jumps too). 1 = VHOLUME
         /// exact (1.48 m, 0.37 s up). Higher makes the jump snappier and smaller; the fall and wall moves are unaffected.
         /// </summary>
-        public float JumpRiseGravity = 1.25f;
+        public float JumpRiseGravity = 1.12f;
         /// <summary>Ignore JumpRiseGravity (VHOLUME's exact jump). Toggled live by the plugin for comparison.</summary>
         public bool ExactVholumeJump;
 
