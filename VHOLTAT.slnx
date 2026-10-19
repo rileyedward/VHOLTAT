@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MovementCore/MovementCore.csproj" />
+    <Project Path="src/VHOLTAT/VHOLTAT.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MovementCore.Tests/MovementCore.Tests.csproj" />
+  </Folder>
+</Solution>

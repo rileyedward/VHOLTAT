@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- BepInEx 5 plugin for STRAFTAT (Unity 2021.3.45, Mono).
+       Game references come from $(StraftatManaged) (Directory.Build.props.user) and are never copied or committed. -->
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>VHOLTAT</AssemblyName>
+    <RootNamespace>VHOLTAT</RootNamespace>
+    <BepInExPluginGuid>dev.riley.vholtat</BepInExPluginGuid>
+    <BepInExPluginName>VHOLTAT</BepInExPluginName>
+    <Product>VHOLTAT</Product>
+    <Description>Parkour movement (momentum, slide, wall run, mantle) for STRAFTAT</Description>
+    <Version>0.0.1</Version>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- MovementCore is compiled into the plugin so only one DLL ships. -->
+  <ItemGroup>
+    <Compile Include="..\MovementCore\**\*.cs" Exclude="..\MovementCore\obj\**;..\MovementCore\bin\**" LinkBase="MovementCore" />
+  </ItemGroup>
+
+  <Target Name="CheckGamePaths" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="'$(StraftatManaged)' == '' Or !Exists('$(StraftatManaged)\Assembly-CSharp.dll')"
+           Text="StraftatManaged is not set or wrong. Copy Directory.Build.props.user.example to Directory.Build.props.user and edit the paths." />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.4.*" IncludeAssets="compile" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine"><HintPath>$(StraftatManaged)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(StraftatManaged)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(StraftatManaged)\UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(StraftatManaged)\UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(StraftatManaged)\UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(StraftatManaged)\UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AnimationModule"><HintPath>$(StraftatManaged)\UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(StraftatManaged)\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(StraftatManaged)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="FishNet.Runtime"><HintPath>$(StraftatManaged)\FishNet.Runtime.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- Debug builds copy the plugin into the dev profile (never into the STRAFTAT folder). -->
+  <Target Name="DeployToDevProfile" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And '$(DevProfile)' != '' And Exists('$(DevProfile)\BepInEx\core\BepInEx.dll')">
+    <MakeDir Directories="$(DevProfile)\BepInEx\plugins\VHOLTAT" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DevProfile)\BepInEx\plugins\VHOLTAT" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) to $(DevProfile)\BepInEx\plugins\VHOLTAT" />
+  </Target>
+</Project>
