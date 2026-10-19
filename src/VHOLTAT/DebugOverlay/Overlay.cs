@@ -58,7 +58,7 @@ namespace VHOLTAT.DebugOverlay
               .Append("  F ").Append(s.WallFront ? "#" : "-").Append("  ledge ").Append(s.LedgeFound ? "#" : "-")
               .Append("  ceil ").Append(s.CeilingBlocked ? "#" : "-").Append('\n');
             sb.Append("weapon speed x").Append(fpc.movementFactor.ToString("0.00"))
-              .Append("   jump ").Append(m.S.ExactVholumeJump ? "VHOLUME exact (F9)" : "snappy (F9)");
+              .Append("   jump ").Append(m.S.ExactVholumeJump ? "VHOLUME exact" : "snappy");
             text = sb.ToString();
         }
 

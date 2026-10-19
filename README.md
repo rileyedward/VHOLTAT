@@ -31,10 +31,10 @@ modded players in their own matchmaking pool. VHOLTAT adds:
 | Key | |
 |---|---|
 | F6 | VHOLTAT / vanilla movement |
-| F7 | overlay: state, speed, boost, walls |
-| F8 | momentum preset (Vholume / Playtest2) |
-| F9 | compare the jump with VHOLUME's exact jump |
-| F10 | mark a problem spot to `BepInEx/vholtat_spots.txt` (when `[Debug] MarkSpots = true`) |
+| F7 | overlay: state, speed, boost, walls (off by default) |
+
+Developer keys (off unless `[Debug] DevKeys = true`): F8 momentum preset (Vholume / Playtest2), F9 compare the jump
+with VHOLUME's exact jump. F10 marks a problem spot to `BepInEx/vholtat_spots.txt` when `[Debug] MarkSpots = true`.
 
 ## Moves
 
@@ -52,6 +52,6 @@ Every number is in `BepInEx/config/dev.riley.vholtat.cfg`; saved edits apply whi
 - `tools/dev/launch.ps1` starts STRAFTAT on the dev profile. Self-tests: `tools/dev/selftest.sh <basic|parkour|sweep>`,
   two-copy multiplayer: `tools/dev/make_client_instance.ps1` then `tools/dev/lan_test.sh [secs] [parkour|match]`
   (optionally `LAG="--vholtat-lag 60 --vholtat-loss 0.02"`), map sweep: `tools/dev/map_sweep.sh`.
-- `tools/release/build-release.ps1` writes the zips, the launcher and the friends bundle to `dist/` (local only).
+- `tools/release/build-release.ps1` writes the zips, the launcher and the main download (`VHOLTAT-<version>-windows.zip`) to `dist/` (local only).
 - Docs: `docs/STRAFTAT_HOOKS.md`, `docs/MOVEMENT_SPEC.md`, `docs/MOMENTUM_SPEC.md`, `docs/RECON.md`,
   `docs/launcher.md`, `docs/devlog.md`.
