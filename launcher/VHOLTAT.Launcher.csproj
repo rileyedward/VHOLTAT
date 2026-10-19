@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Windows launcher: finds STRAFTAT, installs BepInEx and VHOLTAT into its own profile and starts the game with it.
+       The plugin DLL is embedded, so the exe is the whole download. .NET Framework 4.8 ships with Windows 10 and 11.
+       Build the plugin in Release first: dotnet build src\VHOLTAT\VHOLTAT.csproj -c Release -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>VHOLTAT.Launcher</RootNamespace>
+    <AssemblyName>VHOLTAT-Launcher</AssemblyName>
+    <Version>0.1.0</Version>
+    <Product>VHOLTAT Launcher</Product>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <PluginDll>$(MSBuildThisFileDirectory)..\src\VHOLTAT\bin\Release\netstandard2.1\VHOLTAT.dll</PluginDll>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(PluginDll)" LogicalName="VHOLTAT.dll" Condition="Exists('$(PluginDll)')" />
+  </ItemGroup>
+
+  <!-- The plugin's version goes into the launcher as [AssemblyMetadata("PluginVersion", ...)]. -->
+  <Target Name="EmbedPluginVersion" BeforeTargets="GenerateAssemblyInfo;CoreGenerateAssemblyInfo">
+    <Error Condition="!Exists('$(PluginDll)')"
+           Text="$(PluginDll) is missing. Build the plugin first: dotnet build src\VHOLTAT\VHOLTAT.csproj -c Release" />
+    <GetAssemblyIdentity AssemblyFiles="$(PluginDll)">
+      <Output TaskParameter="Assemblies" ItemName="PluginIdentity" />
+    </GetAssemblyIdentity>
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>PluginVersion</_Parameter1>
+        <_Parameter2>%(PluginIdentity.Version)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+</Project>
