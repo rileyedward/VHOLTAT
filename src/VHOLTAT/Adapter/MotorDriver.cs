@@ -76,6 +76,7 @@ namespace VHOLTAT.Adapter
             Motor.Reset(SensorProbe.ToVec(cc != null ? cc.velocity : Vector3.zero), cc != null && cc.isGrounded);
             baselineY = fpc.moveDirection.y;
             jumpQueued = false;
+            Feedback.Reset();
         }
 
         public static void QueueJump() => jumpQueued = true;
@@ -161,6 +162,7 @@ namespace VHOLTAT.Adapter
             lastCrouch = crouch;
 
             SensorProbe.Probe(fpc, cc, fwd, fpc.landLayer.value, ref Sensors);
+            float fallSpeed = -Motor.Velocity.Y;
             Motor.Step(in input, in Sensors, dt);
 
             Vector3 vel = SensorProbe.ToUnity(Motor.Velocity);
@@ -175,9 +177,12 @@ namespace VHOLTAT.Adapter
 
             // Ground states press down a little (vanilla uses -1) so the CharacterController keeps reporting grounded.
             Vector3 stick = Motor.IsGroundState ? new Vector3(0f, -GroundStick, 0f) : Vector3.zero;
+            Dev.PerfProbe.MoveBegin();
             CollisionFlags flags = cc.Move((vel + external + stick) * dt);
+            Dev.PerfProbe.MoveEnd();
             AfterMove(cc, flags);
             PlayEvents(fpc);
+            Feedback.Apply(fpc, Motor, fallSpeed);
             return true;
         }
 

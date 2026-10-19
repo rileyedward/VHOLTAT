@@ -79,6 +79,8 @@ namespace VHOLTAT.Dev
             }
 
             MotorDriver.ScriptActive = true;
+            PerfProbe.Reset();
+            PerfProbe.On = true;
             yield return Phase("stand", 0.5f, Vector2.zero, false);
             MotorDriver.ScriptJump = true;
             yield return Phase("jump", 1.0f, Vector2.zero, false);
@@ -92,6 +94,14 @@ namespace VHOLTAT.Dev
             yield return Phase("strafe", 0.6f, Vector2.right, false);
             yield return Phase("stop", 0.6f, Vector2.zero, false);
             MotorDriver.ScriptActive = false;
+            PerfProbe.On = false;
+            Plugin.Logger.LogInfo(PerfProbe.Report());
+            Plugin.Settings.ShowOverlay.Value = false;
+            PerfProbe.Reset();
+            PerfProbe.On = true;
+            yield return new WaitForSeconds(3f); // same work with the overlay hidden (idle standing)
+            PerfProbe.On = false;
+            Plugin.Logger.LogInfo(PerfProbe.Report() + " (overlay off, idle)");
             Shot("vholtat_end.png");
             Plugin.Logger.LogInfo("[test] done");
         }
