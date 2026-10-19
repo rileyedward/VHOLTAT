@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Pure C# movement model: no Unity, BepInEx or STRAFTAT references. The plugin compiles these sources in. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>VHOLTAT.MovementCore</AssemblyName>
+    <RootNamespace>VHOLTAT.Movement</RootNamespace>
+  </PropertyGroup>
+</Project>

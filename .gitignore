@@ -1,0 +1,30 @@
+# Never commit game binaries, decompiled code, or VHOLUME / STRAFTAT assets.
+*.dll
+*.pdb
+*.exe
+*.mdb
+*.pak
+*.utoc
+*.ucas
+Managed/
+BepInEx/
+_decomp/
+decompiled/
+*.decompiled.*
+
+# Local machine config
+Directory.Build.props.user
+*.user
+
+# .NET
+bin/
+obj/
+.vs/
+TestResults/
+
+# OS / editor
+Thumbs.db
+.idea/
+.vscode/
+
+dist/

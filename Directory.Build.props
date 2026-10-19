@@ -1,0 +1,8 @@
+<Project>
+  <!-- Machine-specific paths live in the git-ignored Directory.Build.props.user (copy the .example). -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')" />
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>
