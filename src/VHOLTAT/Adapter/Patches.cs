@@ -17,7 +17,12 @@ namespace VHOLTAT.Adapter
         {
             if (!Ours(__instance))
                 return true;
-            return !MotorDriver.Drive(__instance);
+            if (!Dev.PerfProbe.On)
+                return !MotorDriver.Drive(__instance);
+            Dev.PerfProbe.Begin();
+            bool drove = MotorDriver.Drive(__instance);
+            Dev.PerfProbe.End();
+            return !drove;
         }
 
         /// <summary>
