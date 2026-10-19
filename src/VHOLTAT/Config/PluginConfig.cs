@@ -38,6 +38,8 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<float> StrafeTilt;
         public readonly ConfigEntry<bool> VholumeWallRunRoll;
         public readonly ConfigEntry<bool> VholumeFov;
+        public readonly ConfigEntry<bool> MoveSounds;
+        public readonly ConfigEntry<bool> LandingDip;
         public readonly ConfigEntry<bool> UseHostSettings;
         public readonly ConfigEntry<int> RemoteInterpolationTicks;
         public readonly ConfigEntry<bool> DevAutoTest;
@@ -71,6 +73,8 @@ namespace VHOLTAT.Config
                 "Head tilt (degrees) into the strafe direction, scaled by speed up to run speed (VHOLUME: 3). 0 = off.");
             VholumeWallRunRoll = file.Bind("Camera", "VholumeWallRunRoll", false,
                 "Use VHOLUME's wall-run roll instead: 6 degrees toward the wall.");
+            MoveSounds = file.Bind("Camera", "MoveSounds", true, "Slide and wall-run sound loops and the vault sound.");
+            LandingDip = file.Bind("Camera", "LandingDip", true, "Camera dip on hard landings.");
             VholumeFov = file.Bind("Camera", "VholumeFov", false,
                 "Use VHOLUME's FOV kicks instead of the speed-based FOV: +5 when running fast, +10 sliding, +15 wall running.");
             UseHostSettings = file.Bind("Multiplayer", "UseHostSettings", true,
@@ -148,6 +152,16 @@ namespace VHOLTAT.Config
             {
                 Plugin.Logger.LogWarning($"config reload failed: {ex.Message}");
             }
+        }
+
+        /// <summary>Puts every movement number (and the preset) back to its default and saves the file.</summary>
+        public void ResetMovement()
+        {
+            var defaults = new MovementSettings();
+            foreach (var pair in movementEntries)
+                pair.Value.Value = (float)pair.Key.GetValue(defaults);
+            Preset.Value = MomentumPreset.Vholume;
+            Apply();
         }
 
         /// <summary>True while the host's settings are applied over the local config.</summary>

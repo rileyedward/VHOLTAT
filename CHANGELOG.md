@@ -7,6 +7,8 @@
 - Strafe during a wall climb to turn it into a wall run along the same wall.
 - Camera: VHOLUME's head tilt into strafes (3 degrees, scaled by speed). Optional VHOLUME wall-run roll (6 degrees
   toward the wall) and VHOLUME FOV kicks in [Camera].
+- In-game settings: a VHOLTAT button in the pause menu opens a window for on/off, overlay, camera, sounds and
+  multiplayer smoothing. Movement numbers stay host-controlled (reset only when solo or hosting).
 - General release packaging: VHOLTAT-<version>-windows.zip, how-to for any player; developer keys off by default.
 
 ## 0.1.1
