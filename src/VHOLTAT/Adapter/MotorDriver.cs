@@ -44,6 +44,8 @@ namespace VHOLTAT.Adapter
             AccessTools.FieldRefAccess<FirstPersonController, float>("tempSetSpeed");
         private static readonly AccessTools.FieldRef<FirstPersonController, float> SprintSpeed =
             AccessTools.FieldRefAccess<FirstPersonController, float>("sprintSpeed");
+        private static readonly AccessTools.FieldRef<FirstPersonController, bool> OnLadder =
+            AccessTools.FieldRefAccess<FirstPersonController, bool>("onLadder");
         private static readonly AccessTools.FieldRef<FirstPersonController, bool> CanJump =
             AccessTools.FieldRefAccess<FirstPersonController, bool>("canJump");
         private static readonly AccessTools.FieldRef<FirstPersonController, NetworkAnimator> NetAnimator =
@@ -162,6 +164,11 @@ namespace VHOLTAT.Adapter
             lastCrouch = crouch;
 
             SensorProbe.Probe(fpc, cc, fwd, fpc.landLayer.value, ref Sensors);
+            if (OnLadder(fpc))
+            {
+                // Vanilla ladders drive vertical speed themselves; don't turn them into wall runs or climbs.
+                Sensors.WallFront = Sensors.WallLeft = Sensors.WallRight = false;
+            }
             float fallSpeed = -Motor.Velocity.Y;
             Motor.Step(in input, in Sensors, dt);
 
