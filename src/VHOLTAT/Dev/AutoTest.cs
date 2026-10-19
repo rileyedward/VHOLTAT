@@ -21,7 +21,9 @@ namespace VHOLTAT.Dev
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (!Plugin.Settings.DevAutoTest.Value)
+            if (scene.name == "MainMenu" && DevNet.Lan)
+                StartCoroutine(DevNet.OnMainMenu());
+            if (!Plugin.Settings.DevAutoTest.Value || DevNet.IsClientRole)
                 return;
             if (scene.name == "MainMenu" && !entered)
             {
@@ -38,6 +40,8 @@ namespace VHOLTAT.Dev
         private IEnumerator Enter()
         {
             yield return new WaitForSeconds(8f);
+            while (!DevNet.Ready) yield return new WaitForSeconds(1f); // LAN test: wait for the Tugboat NetworkManager
+            yield return new WaitForSeconds(2f);
             var map = Plugin.Settings.DevTestMap.Value;
             Plugin.Logger.LogInfo($"[test] entering {map} in exploration mode");
             SteamLobby.Instance.EnterExplorationMap(map);
@@ -58,6 +62,14 @@ namespace VHOLTAT.Dev
                 yield break;
             }
             LogVanillaTuning(fpc);
+            if (DevNet.Lan)
+            {
+                // Wait for the client copy to join, then give it time to load the map and find us.
+                for (float w = 0f; w < 90f && FishNet.InstanceFinder.ServerManager.Clients.Count < 2; w += 1f)
+                    yield return new WaitForSeconds(1f);
+                Plugin.Logger.LogInfo($"[lan] host: {FishNet.InstanceFinder.ServerManager.Clients.Count} connections, starting the run");
+                yield return new WaitForSeconds(10f);
+            }
             yield return new WaitForSeconds(4f);
             Plugin.Settings.ShowOverlay.Value = true;
             if (Plugin.Settings.DevTestMode.Value == "parkour")
