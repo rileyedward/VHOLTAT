@@ -46,6 +46,7 @@ namespace VHOLTAT
         private void Update()
         {
             var s = Plugin.Settings;
+            s.PollFileReload();
             if (Input.GetKeyDown(s.ToggleKey.Value))
             {
                 s.Enabled.Value = !s.Enabled.Value; // SettingChanged switches the driver

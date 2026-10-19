@@ -80,6 +80,51 @@ namespace VHOLTAT.Config
             }
             Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
             file.SettingChanged += (_, __) => Apply();
+
+            // BepInEx only reads the file at startup; watch it so saved edits apply while the game runs.
+            this.file = file;
+            try
+            {
+                watcher = new System.IO.FileSystemWatcher(System.IO.Path.GetDirectoryName(file.ConfigFilePath),
+                    System.IO.Path.GetFileName(file.ConfigFilePath))
+                {
+                    NotifyFilter = System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.Size,
+                };
+                watcher.Changed += (_, __) => fileChanged = true;
+                watcher.EnableRaisingEvents = true;
+            }
+            catch (System.Exception ex)
+            {
+                Plugin.Logger.LogWarning($"config file watcher unavailable: {ex.Message}");
+            }
+        }
+
+        private readonly ConfigFile file;
+        private readonly System.IO.FileSystemWatcher watcher;
+        private volatile bool fileChanged;
+        private float reloadAt;
+
+        /// <summary>Called every frame from the main thread: reloads the file shortly after it was saved.</summary>
+        public void PollFileReload()
+        {
+            if (fileChanged)
+            {
+                fileChanged = false;
+                reloadAt = Time.unscaledTime + 0.25f; // let the editor finish writing
+            }
+            if (reloadAt <= 0f || Time.unscaledTime < reloadAt)
+                return;
+            reloadAt = 0f;
+            try
+            {
+                file.Reload();
+                Apply();
+                Plugin.Logger.LogInfo("config reloaded from file");
+            }
+            catch (System.Exception ex)
+            {
+                Plugin.Logger.LogWarning($"config reload failed: {ex.Message}");
+            }
         }
 
         /// <summary>True while the host's settings are applied over the local config.</summary>
