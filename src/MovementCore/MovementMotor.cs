@@ -164,7 +164,7 @@ namespace VHOLTAT.Movement
                 return;
             }
 
-            GroundMove(WishDir(in input), S.RunSpeed, dt);
+            GroundMove(WishDir(in input), S.RunSpeed * Scale(in input), dt);
             FollowGround(in sensors);
         }
 
@@ -182,7 +182,7 @@ namespace VHOLTAT.Movement
                 }
             }
 
-            GroundMove(WishDir(in input), S.CrouchSpeed, dt);
+            GroundMove(WishDir(in input), S.CrouchSpeed * Scale(in input), dt);
             FollowGround(in sensors);
         }
 
@@ -587,6 +587,8 @@ namespace VHOLTAT.Movement
         // ---------------------------------------------------------------- helpers
 
         private const float DegToRad = (float)(Math.PI / 180.0);
+
+        private static float Scale(in MovementInput input) => input.SpeedScale > 0f ? input.SpeedScale : 1f;
 
         private static Vec3 WishDir(in MovementInput input)
         {
