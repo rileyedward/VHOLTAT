@@ -68,6 +68,7 @@ namespace VHOLTAT.Net
                 ms.SetLength(0);
                 var w = new BinaryWriter(ms);
                 w.Write(MsgSettings);
+                w.Write(VersionCheck.LocalVersion);
                 cfg.WriteLocal(w);
                 w.Flush();
                 nm.ServerManager.Broadcast(new VholtatPacket { Data = ms.ToArray() }, true, Channel.Reliable);
@@ -84,11 +85,12 @@ namespace VHOLTAT.Net
             if (InstanceFinder.IsServer || packet.Data == null || packet.Data.Length < 2)
                 return; // the host already uses its own settings
             var cfg = Plugin.Settings;
-            if (!cfg.UseHostSettings.Value)
-                return;
             using (var r = new BinaryReader(new MemoryStream(packet.Data)))
             {
                 if (r.ReadByte() != MsgSettings)
+                    return;
+                // The version leads every packet, so a mismatch is caught before anything else is read.
+                if (!VersionCheck.CheckHost(r.ReadString()) || !cfg.UseHostSettings.Value)
                     return;
                 bool first = !cfg.RemoteActive;
                 if (!cfg.ApplyRemote(r))

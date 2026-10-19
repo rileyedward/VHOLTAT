@@ -36,6 +36,7 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<bool> DevAutoTest;
         public readonly ConfigEntry<string> DevTestMap;
         public readonly ConfigEntry<string> DevTestMode;
+        public readonly ConfigEntry<string> DevFakeVersion;
 
         public readonly MovementSettings Movement = new MovementSettings();
 
@@ -64,6 +65,7 @@ namespace VHOLTAT.Config
                 "plays by the same rules. Your own config comes back when you leave.");
             DevAutoTest = file.Bind("Dev", "AutoTest", false,
                 "Developer self-test: enters TestMap from the menu, drives a scripted run/slide/jump and logs it.");
+            DevFakeVersion = file.Bind("Dev", "FakeVersion", "", "Developer only: pretend to be this VHOLTAT version (version-check test). Leave empty.");
             DevTestMode = file.Bind("Dev", "TestMode", "basic", "basic = run/slide/jump sequence; parkour = spawned ledge + side wall (mantle, wall run, wall jump).");
             DevTestMap = file.Bind("Dev", "TestMap", "Arena_00", "Map for the self-test (exploration mode).");
             ShowOverlay = file.Bind("Debug", "ShowOverlay", false, "Shows speed, state, grounded and wall info.");
