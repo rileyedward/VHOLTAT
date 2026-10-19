@@ -66,6 +66,7 @@ namespace VHOLTAT.Config
 
         private static string SectionFor(string name)
         {
+            if (name.StartsWith("Boost") || name == "LandingCarry" || name.EndsWith("Gain") || name == "PerfectHopWindow") return "Momentum";
             if (name.StartsWith("Slide") || name.StartsWith("Slope")) return "Slide";
             if (name.StartsWith("WallRun") || name.StartsWith("WallJump") || name.StartsWith("WallMax")) return "WallRun";
             if (name.StartsWith("WallClimb")) return "WallClimb";
