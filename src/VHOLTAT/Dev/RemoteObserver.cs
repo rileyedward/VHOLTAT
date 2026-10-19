@@ -36,10 +36,23 @@ namespace VHOLTAT.Dev
             Vector3 last = remote.position;
             float windowStart = Time.time, sum = 0f, sumSq = 0f, maxStep = 0f;
             int frames = 0, shots = 0;
-            for (float t = 0f; t < 70f && remote != null; t += Time.deltaTime)
+            for (float t = 0f; t < 120f; t += Time.deltaTime)
             {
                 yield return null;
-                if (remote == null) break;
+                if (remote == null || !remote.gameObject.activeInHierarchy)
+                {
+                    // The host's player is replaced on respawn; follow the new one.
+                    remote = null;
+                    foreach (var fpc in Object.FindObjectsOfType<FirstPersonController>())
+                        if (!fpc.IsOwner)
+                        {
+                            remote = fpc.transform;
+                            anim = HarmonyLib.Traverse.Create(fpc).Field("animator").GetValue<Animator>() ?? fpc.GetComponentInChildren<Animator>(true);
+                            last = remote.position;
+                            Plugin.Logger.LogInfo($"[lan] observer: now watching {remote.name} at {last}");
+                        }
+                    if (remote == null) continue;
+                }
                 Vector3 p = remote.position;
                 float dt = Mathf.Max(Time.deltaTime, 1e-4f);
                 float speed = new Vector2(p.x - last.x, p.z - last.z).magnitude / dt;
