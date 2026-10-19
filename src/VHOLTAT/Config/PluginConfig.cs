@@ -10,8 +10,17 @@ namespace VHOLTAT.Config
     /// BepInEx config. Every public float on <see cref="MovementSettings"/> becomes an entry (default = spec value)
     /// and is written back into the live settings object whenever it changes, so edits apply without a restart.
     /// </summary>
+    internal enum MomentumPreset
+    {
+        /// <summary>VHOLUME's own carry rules (default).</summary>
+        Vholume,
+        /// <summary>Playtest 2 build: chained moves feed the boost (slide-hops, wall jumps, perfect hops, landings, downhill).</summary>
+        Playtest2,
+    }
+
     internal sealed class PluginConfig
     {
+        public readonly ConfigEntry<MomentumPreset> Preset;
         public readonly ConfigEntry<bool> Enabled;
         public readonly ConfigEntry<KeyCode> ToggleKey;
         public readonly ConfigEntry<bool> ShowOverlay;
@@ -33,6 +42,9 @@ namespace VHOLTAT.Config
         {
             Enabled = file.Bind("General", "Enabled", true,
                 "Use VHOLTAT movement for your own player. Toggle in game with ToggleKey.");
+            Preset = file.Bind("General", "Preset", MomentumPreset.Vholume,
+                "Momentum rules. Vholume = VHOLUME's carry rules. Playtest2 = skill-fed boost from playtest 2 " +
+                "(its numbers are in [Preset.Playtest2]). Switch live to compare.");
             ToggleKey = file.Bind("General", "ToggleKey", KeyCode.F6, "Switches between vanilla and VHOLTAT movement live.");
             VanillaVault = file.Bind("Mantle", "VanillaVault", false,
                 "Keep STRAFTAT's own vault (hop over waist-high walls) alongside VHOLTAT's mantle.");
@@ -55,6 +67,7 @@ namespace VHOLTAT.Config
                 field.SetValue(Movement, entry.Value);
                 movementEntries.Add(new KeyValuePair<FieldInfo, ConfigEntry<float>>(field, entry));
             }
+            Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
             file.SettingChanged += (_, __) => Apply();
         }
 
@@ -62,11 +75,13 @@ namespace VHOLTAT.Config
         {
             foreach (var pair in movementEntries)
                 pair.Key.SetValue(Movement, pair.Value.Value);
+            Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
         }
 
         private static string SectionFor(string name)
         {
-            if (name.StartsWith("Boost") || name == "LandingCarry" || name.EndsWith("Gain") || name == "PerfectHopWindow") return "Momentum";
+            if (name.StartsWith("P2")) return "Preset.Playtest2";
+            if (name.StartsWith("Boost") || name.Contains("Hop") || name == "WallRunAirCarry") return "Momentum";
             if (name.StartsWith("Slide") || name.StartsWith("Slope")) return "Slide";
             if (name.StartsWith("WallRun") || name.StartsWith("WallJump") || name.StartsWith("WallMax")) return "WallRun";
             if (name.StartsWith("WallClimb")) return "WallClimb";
