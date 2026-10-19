@@ -1,0 +1,41 @@
+VHOLTAT 0.1.0 - VHOLUME-style parkour movement for STRAFTAT
+=============================================================
+
+Everyone in the lobby needs VHOLTAT 0.1.0 (this exact version).
+
+INSTALL (about a minute)
+1. Close STRAFTAT.
+2. Run VHOLTAT-Launcher-0.1.0.exe.
+   - Windows may say "Windows protected your PC" because the launcher isn't signed:
+     click "More info", then "Run anyway".
+3. It finds STRAFTAT through Steam (or press Browse and pick the STRAFTAT folder).
+4. Press Install. It downloads BepInEx (the mod loader) and installs VHOLTAT into
+   %APPDATA%\VHOLTAT. Your STRAFTAT folder only gets two small loader files that stay
+   switched off, so starting STRAFTAT from Steam is still plain vanilla.
+5. Press Play. Always start STRAFTAT with the launcher's Play button to have VHOLTAT.
+
+PLAY TOGETHER
+- The host creates a private lobby as usual and invites friends through Steam.
+- The host's movement settings are used by everyone in the lobby automatically.
+- If your version doesn't match the host's, a yellow banner tells you which version to
+  install and you get normal STRAFTAT movement until you update.
+- Modded players get their own matchmaking pool, so you never meet vanilla players.
+
+KEYS
+  F6  switch between VHOLTAT and vanilla movement
+  F7  speed / state overlay
+  F9  compare the jump with VHOLUME's exact (floatier) jump
+
+MOVES
+- Hold crouch while running to slide; jump out of a slide to keep its speed.
+- Jump right as you land to keep your speed (bunny hop).
+- Jump next to a wall while holding forward to wall run; jump again to wall jump.
+  Bounce wall to wall to build speed.
+- Hold forward into a wall in the air to climb it; reach the top to mantle up.
+
+MANUAL INSTALL (instead of the launcher, if you already use BepInEx)
+  Unzip VHOLTAT-0.1.0-manual.zip into your STRAFTAT folder (it contains
+  BepInEx\plugins\VHOLTAT\VHOLTAT.dll).
+
+UNINSTALL
+  Run the launcher and press Uninstall. Your STRAFTAT folder goes back exactly as it was.
