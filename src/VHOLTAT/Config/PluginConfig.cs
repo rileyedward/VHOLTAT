@@ -27,6 +27,8 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<KeyCode> JumpStyleKey;
         public readonly ConfigEntry<bool> ShowOverlay;
         public readonly ConfigEntry<KeyCode> OverlayKey;
+        public readonly ConfigEntry<bool> MarkSpots;
+        public readonly ConfigEntry<KeyCode> MarkSpotKey;
         public readonly ConfigEntry<bool> VanillaVault;
         public readonly ConfigEntry<float> FovSpeedBonus;
         public readonly ConfigEntry<float> FovFullSpeed;
@@ -74,6 +76,9 @@ namespace VHOLTAT.Config
             DevTestMap = file.Bind("Dev", "TestMap", "Arena_00", "Map for the self-test (exploration mode).");
             ShowOverlay = file.Bind("Debug", "ShowOverlay", false, "Shows speed, state, grounded and wall info.");
             OverlayKey = file.Bind("Debug", "OverlayKey", KeyCode.F7, "Shows/hides the debug overlay.");
+            MarkSpots = file.Bind("Debug", "MarkSpots", false,
+                "Lets MarkSpotKey write the current spot (map, position, state, nearby geometry) to BepInEx/vholtat_spots.txt for bug reports.");
+            MarkSpotKey = file.Bind("Debug", "MarkSpotKey", KeyCode.F10, "Marks the current spot when MarkSpots is on.");
 
             foreach (var field in typeof(MovementSettings).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
