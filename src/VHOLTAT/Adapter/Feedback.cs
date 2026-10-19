@@ -38,13 +38,15 @@ namespace VHOLTAT.Adapter
         {
             try
             {
-                Audio(fpc, m);
-                if ((m.Events & MoveEvents.MantleStarted) != 0)
+                if (Plugin.Settings.MoveSounds.Value)
+                    Audio(fpc, m);
+                if (Plugin.Settings.MoveSounds.Value && (m.Events & MoveEvents.MantleStarted) != 0)
                 {
                     var surface = SensorProbe.LastCoverSurface;
                     VaultClip(fpc, surface != null ? surface.tag : "Untagged");
                 }
-                LandDip(fpc, m, impactSpeed);
+                if (Plugin.Settings.LandingDip.Value)
+                    LandDip(fpc, m, impactSpeed);
             }
             catch (Exception ex)
             {

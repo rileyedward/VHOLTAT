@@ -44,6 +44,7 @@ namespace VHOLTAT
             gameObject.AddComponent<Net.SettingsSync>();
             gameObject.AddComponent<Net.VersionCheck>();
             gameObject.AddComponent<Net.RemoteSmoothing>();
+            gameObject.AddComponent<Settings.SettingsMenu>();
         }
 
         private void Update()

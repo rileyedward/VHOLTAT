@@ -89,6 +89,18 @@ namespace VHOLTAT.Dev
             }
             yield return new WaitForSeconds(4f);
             Plugin.Settings.ShowOverlay.Value = true;
+            if (Plugin.Settings.DevTestMode.Value == "menu")
+            {
+                var pauseMenu = HarmonyLib.Traverse.Create(PauseManager.Instance).Field("pauseMenu").GetValue<GameObject>();
+                pauseMenu.SetActive(true); // what the Escape key does
+                Settings.SettingsMenu.ForceOpen = true;
+                yield return new WaitForSeconds(1.5f);
+                Shot("vholtat_menu.png");
+                yield return new WaitForSeconds(1f);
+                pauseMenu.SetActive(false);
+                Plugin.Logger.LogInfo("[test] done");
+                yield break;
+            }
             if (Plugin.Settings.DevTestMode.Value == "sweep")
             {
                 yield return Sweep(fpc);
