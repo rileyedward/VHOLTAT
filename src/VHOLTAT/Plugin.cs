@@ -40,6 +40,7 @@ namespace VHOLTAT
         {
             gameObject.AddComponent<DebugOverlay.Overlay>();
             gameObject.AddComponent<Dev.AutoTest>();
+            gameObject.AddComponent<Net.SettingsSync>();
         }
 
         private void Update()
