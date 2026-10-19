@@ -57,6 +57,5 @@ Read from a shallow clone in `C:\Users\Riley\source\_decomp\eights` (outside thi
 
 ## LoopbackLab
 
-Nothing by that name is on this PC (searched `source`, Desktop, Downloads, Documents, AppData) or on
-Thunderstore/web. **Open question for Riley:** where does LoopbackLab live? If it is a tool for running two
-STRAFTAT instances on one PC, Straft4Dead's `make_client_instance.ps1` + `--s4d-lan` flow covers the same need.
+Dropped: Riley has never heard of it (2026-10-19), and nothing by that name exists on this PC or online.
+For two-instance testing on one PC, reuse Straft4Dead's `make_client_instance.ps1` + `--s4d-lan` approach.
