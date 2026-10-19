@@ -33,24 +33,37 @@ namespace VHOLTAT.Movement
         /// <summary>Speed lost on each landing while above the run cap.</summary>
         public float HopLandingLoss = 0.21f;
 
-        // Momentum (speed boost). VHOLUME keeps one boost value added on top of every state's base speed
-        // (run, slide, wall run). It decays exponentially on the ground (0.8/s) and on walls (0.1/s), never in the air.
-        // VHOLUME only gains boost from level pads/wind; STRAFTAT has none, so chained moves feed it instead.
-        public float BoostMax = 12f;
+        // Momentum ("speed boost"), as measured from VHOLUME's data and dev replays: speed above each state's base
+        // (run, slide, wall run) is carried as one boost value. It never decays in the air, decays exponentially on the
+        // ground (0.8/s) and barely on walls (0.1/s). Entering a wall run turns air speed above run speed into boost.
+        public float BoostMax = 60f;
         public float BoostDecayGround = 0.8f;
         public float BoostDecaySlide = 0.8f;
         public float BoostDecayWallRun = 0.1f;
-        /// <summary>On landing, this fraction of speed above the new state's base+boost is kept as boost.</summary>
-        public float LandingCarry = 0.5f;
-        /// <summary>Boost added by jumping out of a slide within the hop window after landing.</summary>
-        public float SlideHopGain = 0.75f;
-        /// <summary>Boost added by every wall jump.</summary>
-        public float WallJumpGain = 1f;
+        /// <summary>Above this speed, hops are graded: only perfect ones keep all speed.</summary>
+        public float PerfectHopSpeed = 26f;
+        public float PerfectHopHighSpeed = 35f;
         /// <summary>Jumping this soon after landing is a perfect hop.</summary>
         public float PerfectHopWindow = 0.034f;
-        public float PerfectHopGain = 0.5f;
+        public float MissedHopLoss = 0.29f;
+        public float MissedHopLossHigh = 0.61f;
+        /// <summary>
+        /// 1 = entering a wall run turns air speed above run speed into boost (wall run to wall run chains stack).
+        /// 0 = only the existing boost carries (the strictest reading of VHOLUME's replays).
+        /// </summary>
+        public float WallRunAirCarry = 1f;
+
+        // Playtest 2 preset (2026-10-19): skill-fed boost instead of VHOLUME's carry rules. Only used when
+        // Playtest2Model is true; the plugin's Preset setting switches it.
+        public bool Playtest2Model;
+        public float P2BoostMax = 12f;
+        /// <summary>On landing, this fraction of speed above the new state's base+boost becomes boost.</summary>
+        public float P2LandingCarry = 0.5f;
+        public float P2SlideHopGain = 0.75f;
+        public float P2WallJumpGain = 1f;
+        public float P2PerfectHopGain = 0.5f;
         /// <summary>Multiplier on the speed gained sliding downhill (goes into boost).</summary>
-        public float SlideSlopeGain = 1f;
+        public float P2SlideSlopeGain = 1f;
 
         // Slide
         public float SlideMinStartSpeed = 7f;

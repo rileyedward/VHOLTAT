@@ -32,7 +32,7 @@ namespace VHOLTAT.DebugOverlay
         {
             sb.Length = 0;
             sb.Append("VHOLTAT  [").Append(MotorDriver.Active ? "ON" : "vanilla").Append("]  ")
-              .Append(Plugin.Settings.ToggleKey.Value).Append(" toggles\n");
+              .Append(Plugin.Settings.ToggleKey.Value).Append(" toggles   preset ").Append(Plugin.Settings.Preset.Value).Append('\n');
             var fpc = MotorDriver.Current;
             if (!MotorDriver.Active || m == null || fpc == null)
             {
