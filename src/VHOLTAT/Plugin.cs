@@ -55,12 +55,12 @@ namespace VHOLTAT
                 s.Enabled.Value = !s.Enabled.Value; // SettingChanged switches the driver
                 Plugin.Logger.LogInfo($"movement: {(s.Enabled.Value ? "VHOLTAT" : "vanilla")}");
             }
-            if (Input.GetKeyDown(s.PresetKey.Value))
+            if (s.DevKeys.Value && Input.GetKeyDown(s.PresetKey.Value))
             {
                 s.Preset.Value = s.Preset.Value == Config.MomentumPreset.Vholume ? Config.MomentumPreset.Playtest2 : Config.MomentumPreset.Vholume;
                 Plugin.Logger.LogInfo($"momentum preset: {s.Preset.Value}");
             }
-            if (Input.GetKeyDown(s.JumpStyleKey.Value))
+            if (s.DevKeys.Value && Input.GetKeyDown(s.JumpStyleKey.Value))
             {
                 s.Movement.ExactVholumeJump = !s.Movement.ExactVholumeJump;
                 Plugin.Logger.LogInfo($"jump: {(s.Movement.ExactVholumeJump ? "VHOLUME exact" : "snappy")}");

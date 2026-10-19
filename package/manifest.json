@@ -2,7 +2,7 @@
   "name": "VHOLTAT",
   "version_number": "0.1.1",
   "website_url": "",
-  "description": "Parkour movement for STRAFTAT: momentum, slides, wall runs, wall jumps, climbs and mantles.",
+  "description": "VHOLUME-style parkour for STRAFTAT: momentum, slides, wall runs, wall jumps, vaults and mantles.",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2100"
   ]

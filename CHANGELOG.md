@@ -8,7 +8,7 @@
 - Knockback cancels carried momentum before pushing, like vanilla; weapon fire slowdown applies.
 - Slide and wall-run sounds, landing camera dip.
 - F10 spot marker for bug reports (opt-in).
-- Launcher and friends bundle.
+- Launcher and the main Windows download.
 
 ## 0.1.0
 

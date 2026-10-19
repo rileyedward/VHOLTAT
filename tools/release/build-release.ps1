@@ -54,12 +54,12 @@ New-Zip $man $manZip
 $launcherExe = Join-Path $dist "VHOLTAT-Launcher-$ver.exe"
 Copy-Item launcher\bin\Release\net48\VHOLTAT-Launcher.exe $launcherExe -Force
 
-# Everything a friend needs in one zip: launcher, manual-install zip and the how-to.
-$fr = Join-Path $stage "friends"
+# The main download: launcher, manual-install zip and the how-to in one zip.
+$fr = Join-Path $stage "windows"
 New-Item -ItemType Directory -Force $fr | Out-Null
 Copy-Item $launcherExe, $manZip $fr
 (Get-Content package\HOW-TO-PLAY.txt -Raw).Replace("0.1.0", $ver) | Set-Content (Join-Path $fr "HOW-TO-PLAY.txt") -Encoding UTF8
-$frZip = Join-Path $dist "VHOLTAT-$ver-for-friends.zip"
+$frZip = Join-Path $dist "VHOLTAT-$ver-windows.zip"
 New-Zip $fr $frZip
 
 Remove-Item $stage -Recurse -Force
