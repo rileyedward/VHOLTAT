@@ -32,6 +32,8 @@ namespace VHOLTAT.Movement
         private float wallJumpGraceTimer;
         private Vec3 graceWallNormal;
         private bool jumpedThisAir;
+        /// <summary>Rising from a ground jump: JumpRiseGravity applies until the apex.</summary>
+        private bool groundJumpRise;
         /// <summary>The wall just left can't be run again until landing or touching a different wall.</summary>
         private bool hasBlockedWall;
         private Vec3 blockedWallNormal;
@@ -61,6 +63,8 @@ namespace VHOLTAT.Movement
         public void AddImpulse(Vec3 deltaV)
         {
             Velocity += deltaV;
+            if (deltaV.Y > 0.5f)
+                groundJumpRise = false;
             if (deltaV.Y > 0.5f && State != MoveState.Air)
             {
                 SetState(MoveState.Air);
@@ -200,6 +204,8 @@ namespace VHOLTAT.Movement
 
         private void SetState(MoveState next)
         {
+            if (next != MoveState.Air)
+                groundJumpRise = false;
             State = next;
             StateTime = 0f;
         }
@@ -366,6 +372,7 @@ namespace VHOLTAT.Movement
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
             jumpedThisAir = true;
+            groundJumpRise = true;
             SetState(MoveState.Air);
             Events |= MoveEvents.Jumped;
         }
@@ -431,7 +438,9 @@ namespace VHOLTAT.Movement
                 return;
 
             AirSteer(WishDir(in input), dt);
-            ApplyGravity(1f, dt);
+            if (Velocity.Y <= 0f)
+                groundJumpRise = false;
+            ApplyGravity(groundJumpRise && !S.ExactVholumeJump ? S.JumpRiseGravity : 1f, dt);
         }
 
         /// <summary>
@@ -617,6 +626,7 @@ namespace VHOLTAT.Movement
             jumpBufferTimer = 0f;
             jumpedThisAir = true;
             SetState(MoveState.Air);
+            groundJumpRise = false;
             Events |= MoveEvents.WallJumped | MoveEvents.Jumped;
         }
 
@@ -651,7 +661,8 @@ namespace VHOLTAT.Movement
                 jumpBufferTimer = 0f;
                 jumpedThisAir = true;
                 SetState(MoveState.Air);
-                Events |= MoveEvents.WallJumped | MoveEvents.Jumped;
+                groundJumpRise = false;
+            Events |= MoveEvents.WallJumped | MoveEvents.Jumped;
                 return;
             }
 

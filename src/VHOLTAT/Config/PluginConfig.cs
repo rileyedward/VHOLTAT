@@ -24,6 +24,7 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<bool> Enabled;
         public readonly ConfigEntry<KeyCode> ToggleKey;
         public readonly ConfigEntry<KeyCode> PresetKey;
+        public readonly ConfigEntry<KeyCode> JumpStyleKey;
         public readonly ConfigEntry<bool> ShowOverlay;
         public readonly ConfigEntry<KeyCode> OverlayKey;
         public readonly ConfigEntry<bool> VanillaVault;
@@ -49,6 +50,8 @@ namespace VHOLTAT.Config
                 "Momentum rules. Vholume = VHOLUME's carry rules. Playtest2 = skill-fed boost from playtest 2 " +
                 "(its numbers are in [Preset.Playtest2]). Switch live to compare.");
             PresetKey = file.Bind("General", "PresetKey", KeyCode.F8, "Cycles the momentum preset live.");
+            JumpStyleKey = file.Bind("General", "JumpStyleKey", KeyCode.F9,
+                "Switches live between the snappier jump (JumpRiseGravity) and VHOLUME's exact jump, for comparison.");
             ToggleKey = file.Bind("General", "ToggleKey", KeyCode.F6, "Switches between vanilla and VHOLTAT movement live.");
             VanillaVault = file.Bind("Mantle", "VanillaVault", false,
                 "Keep STRAFTAT's own vault (hop over waist-high walls) alongside VHOLTAT's mantle.");

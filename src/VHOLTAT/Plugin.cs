@@ -56,6 +56,11 @@ namespace VHOLTAT
                 s.Preset.Value = s.Preset.Value == Config.MomentumPreset.Vholume ? Config.MomentumPreset.Playtest2 : Config.MomentumPreset.Vholume;
                 Plugin.Logger.LogInfo($"momentum preset: {s.Preset.Value}");
             }
+            if (Input.GetKeyDown(s.JumpStyleKey.Value))
+            {
+                s.Movement.ExactVholumeJump = !s.Movement.ExactVholumeJump;
+                Plugin.Logger.LogInfo($"jump: {(s.Movement.ExactVholumeJump ? "VHOLUME exact" : "snappy")}");
+            }
             if (Input.GetKeyDown(s.OverlayKey.Value))
                 s.ShowOverlay.Value = !s.ShowOverlay.Value;
         }
