@@ -42,6 +42,7 @@ namespace VHOLTAT
             gameObject.AddComponent<Dev.AutoTest>();
             gameObject.AddComponent<Net.SettingsSync>();
             gameObject.AddComponent<Net.VersionCheck>();
+            gameObject.AddComponent<Net.RemoteSmoothing>();
         }
 
         private void Update()

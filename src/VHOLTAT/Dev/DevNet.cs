@@ -31,6 +31,26 @@ namespace VHOLTAT.Dev
             return i >= 0 && i + 1 < args.Length ? args[i + 1].ToLowerInvariant() : null;
         }
 
+        /// <summary>
+        /// Optional simulated network conditions on this copy's outgoing traffic (FishNet's latency simulator):
+        /// --vholtat-lag &lt;ms&gt; and --vholtat-loss &lt;0..1&gt;. Both copies adding 60 ms gives about 120 ms round trip.
+        /// </summary>
+        private static void ApplyLag()
+        {
+            var args = Environment.GetCommandLineArgs();
+            int i = Array.IndexOf(args, "--vholtat-lag");
+            int j = Array.IndexOf(args, "--vholtat-loss");
+            if (i < 0 && j < 0) return;
+            long lag = i >= 0 && i + 1 < args.Length && long.TryParse(args[i + 1], out var l) ? l : 0;
+            double loss = j >= 0 && j + 1 < args.Length && double.TryParse(args[j + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0;
+            var sim = InstanceFinder.TransportManager.LatencySimulator;
+            sim.SetEnabled(true);
+            sim.SetLatency(lag);
+            sim.SetPacketLoss(loss);
+            sim.SetOutOfOrder(loss > 0 ? 0.01 : 0);
+            Plugin.Logger.LogInfo($"[lan] simulating {lag} ms outgoing latency, {loss:P0} packet loss");
+        }
+
         /// <summary>LAN mode is set up (or not in use): the host may enter a map.</summary>
         internal static bool Ready => !Lan || Active is Tugboat;
 
@@ -51,6 +71,7 @@ namespace VHOLTAT.Dev
                 yield break;
             }
             Plugin.Logger.LogInfo($"[lan] role {Role}: transport {Active.GetType().Name} port {((Tugboat)Active).GetPort()}");
+            ApplyLag();
             if (!IsClientRole || _clientRunning) yield break;
             _clientRunning = true;
             // Client: keep trying the host until it's up.
