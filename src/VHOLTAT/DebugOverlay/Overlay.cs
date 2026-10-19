@@ -32,7 +32,11 @@ namespace VHOLTAT.DebugOverlay
         {
             sb.Length = 0;
             sb.Append("VHOLTAT  [").Append(MotorDriver.Active ? "ON" : "vanilla").Append("]  ")
-              .Append(Plugin.Settings.ToggleKey.Value).Append(" toggles   preset ").Append(Plugin.Settings.Preset.Value).Append('\n');
+              .Append(Plugin.Settings.ToggleKey.Value).Append(" toggles   preset ")
+              .Append(Plugin.Settings.RemoteActive
+                  ? (Plugin.Settings.Movement.Playtest2Model ? "Playtest2 (host)" : "Vholume (host)")
+                  : Plugin.Settings.Preset.Value.ToString())
+              .Append('\n');
             var fpc = MotorDriver.Current;
             if (!MotorDriver.Active || m == null || fpc == null)
             {
