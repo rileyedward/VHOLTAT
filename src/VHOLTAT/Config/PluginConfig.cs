@@ -17,6 +17,10 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<bool> ShowOverlay;
         public readonly ConfigEntry<KeyCode> OverlayKey;
         public readonly ConfigEntry<bool> VanillaVault;
+        public readonly ConfigEntry<float> FovSpeedBonus;
+        public readonly ConfigEntry<float> FovFullSpeed;
+        public readonly ConfigEntry<float> FovLerp;
+        public readonly ConfigEntry<float> WallRunRoll;
         public readonly ConfigEntry<bool> DevAutoTest;
         public readonly ConfigEntry<string> DevTestMap;
 
@@ -32,6 +36,10 @@ namespace VHOLTAT.Config
             ToggleKey = file.Bind("General", "ToggleKey", KeyCode.F6, "Switches between vanilla and VHOLTAT movement live.");
             VanillaVault = file.Bind("Mantle", "VanillaVault", false,
                 "Keep STRAFTAT's own vault (hop over waist-high walls) alongside VHOLTAT's mantle.");
+            FovSpeedBonus = file.Bind("Camera", "FovSpeedBonus", 15f, "Extra FOV (degrees) at FovFullSpeed, starting from run speed.");
+            FovFullSpeed = file.Bind("Camera", "FovFullSpeed", 26f, "Speed (m/s) where the FOV bonus is complete.");
+            FovLerp = file.Bind("Camera", "FovLerp", 6f, "How fast the FOV follows speed.");
+            WallRunRoll = file.Bind("Camera", "WallRunRoll", 10f, "Camera roll (degrees) away from the wall while wall running.");
             DevAutoTest = file.Bind("Dev", "AutoTest", false,
                 "Developer self-test: enters TestMap from the menu, drives a scripted run/slide/jump and logs it.");
             DevTestMap = file.Bind("Dev", "TestMap", "Arena_00", "Map for the self-test (exploration mode).");

@@ -70,6 +70,15 @@ namespace VHOLTAT.Adapter
                 MotorDriver.OnTeleport(__instance, __instance.transform.eulerAngles.y - __state);
         }
 
+        [HarmonyPrefix, HarmonyPatch("HandleCameraController")]
+        private static bool HandleCameraController(FirstPersonController __instance)
+        {
+            if (!Ours(__instance))
+                return true;
+            CameraFeel.Apply(__instance);
+            return false;
+        }
+
         [HarmonyPrefix, HarmonyPatch("HandleSlide")]
         private static bool HandleSlide(FirstPersonController __instance) => !Ours(__instance);
 

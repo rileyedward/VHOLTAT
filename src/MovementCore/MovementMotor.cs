@@ -18,6 +18,9 @@ namespace VHOLTAT.Movement
         /// <summary>Normal of the wall being run on or climbed (valid in those states).</summary>
         public Vec3 WallNormal { get; private set; }
 
+        /// <summary>Momentum on top of each state's base speed (m/s). See MovementSettings Boost*.</summary>
+        public float Boost { get; private set; }
+
         public float HorizontalSpeed => Velocity.Flat.Magnitude;
         public bool IsGroundState => State == MoveState.Ground || State == MoveState.Crouch || State == MoveState.Slide;
         public bool WantsCrouchedCapsule => State == MoveState.Crouch || State == MoveState.Slide;
@@ -43,6 +46,7 @@ namespace VHOLTAT.Movement
         public void Reset(Vec3 velocity, bool grounded)
         {
             Velocity = velocity;
+            Boost = 0f;
             SetState(grounded ? MoveState.Ground : MoveState.Air);
             coyoteTimer = jumpBufferTimer = wallJumpGraceTimer = 0f;
             sinceLanding = 999f;
@@ -75,6 +79,7 @@ namespace VHOLTAT.Movement
             if (input.JumpPressed)
                 jumpBufferTimer = S.JumpBufferTime;
 
+            DecayBoost(dt);
             HandleGroundTransitions(in input, in sensors);
 
             switch (State)
@@ -87,6 +92,46 @@ namespace VHOLTAT.Movement
                 case MoveState.WallRunRight: UpdateWallRun(in input, in sensors, dt); break;
                 case MoveState.WallClimb: UpdateWallClimb(in input, in sensors, dt); break;
                 case MoveState.Mantle: UpdateMantle(in sensors, dt); break;
+            }
+        }
+
+        // ---------------------------------------------------------------- momentum
+
+        private void DecayBoost(float dt)
+        {
+            float rate;
+            switch (State)
+            {
+                case MoveState.Ground: rate = S.BoostDecayGround; break;
+                case MoveState.Slide: rate = S.BoostDecaySlide; break;
+                case MoveState.WallRunLeft:
+                case MoveState.WallRunRight: rate = S.BoostDecayWallRun; break;
+                case MoveState.Crouch: Boost = 0f; return; // crouch-walking clears momentum
+                default: return; // air, climb, mantle: kept
+            }
+            Boost *= (float)Math.Exp(-rate * dt);
+        }
+
+        private void AddBoost(float amount)
+        {
+            Boost = Math.Max(0f, Math.Min(S.BoostMax, Boost + amount));
+        }
+
+        /// <summary>Adds speed along the current horizontal direction and the same amount of boost.</summary>
+        private void Gain(float amount)
+        {
+            if (amount <= 0f)
+                return;
+            float before = Boost;
+            AddBoost(amount);
+            float added = Boost - before;
+            var flat = Velocity.Flat;
+            float speed = flat.Magnitude;
+            if (speed > 0.1f && added > 0f)
+            {
+                float y = Velocity.Y;
+                Velocity = flat / speed * (speed + added);
+                Velocity.Y = y;
             }
         }
 
@@ -132,7 +177,14 @@ namespace VHOLTAT.Movement
                 Velocity = flat.Normalized * speed;
             }
 
-            if (input.CrouchHeld && speed >= S.SlideMinStartSpeed)
+            // Part of the speed carried in above the new state's base + boost becomes boost, so chains build.
+            bool slide = input.CrouchHeld && speed >= S.SlideMinStartSpeed;
+            float baseSpeed = slide ? S.SlideSpeed : input.CrouchHeld ? S.CrouchSpeed : S.RunSpeed;
+            float excess = speed - (baseSpeed + Boost);
+            if (excess > 0f && (slide || !input.CrouchHeld))
+                AddBoost(excess * S.LandingCarry);
+
+            if (slide)
                 StartSlide(in input);
             else
                 SetState(input.CrouchHeld ? MoveState.Crouch : MoveState.Ground);
@@ -164,7 +216,7 @@ namespace VHOLTAT.Movement
                 return;
             }
 
-            GroundMove(WishDir(in input), S.RunSpeed * Scale(in input), dt);
+            GroundMove(WishDir(in input), S.RunSpeed * Scale(in input) + Boost, dt);
             FollowGround(in sensors);
         }
 
@@ -191,7 +243,7 @@ namespace VHOLTAT.Movement
             var flat = Velocity.Flat;
             float speed = flat.Magnitude;
             Vec3 dir = speed > 0.1f ? flat / speed : input.Forward;
-            Velocity = dir * Math.Max(speed, S.SlideSpeed);
+            Velocity = dir * Math.Max(speed, S.SlideSpeed + Boost);
             SetState(MoveState.Slide);
             Events |= MoveEvents.SlideStarted;
         }
@@ -222,7 +274,9 @@ namespace VHOLTAT.Movement
             float slope = Vec3.Dot(sensors.GroundNormal.Flat, dir);
             if (slope > 0f)
             {
-                speed += S.Gravity * slope * dt;
+                float gain = S.Gravity * slope * dt * S.SlideSlopeGain;
+                AddBoost(gain);
+                speed += gain;
             }
             else
             {
@@ -233,6 +287,11 @@ namespace VHOLTAT.Movement
                     decel += S.SlideFriction;
                 speed -= decel * dt;
             }
+
+            // Speed above base + boost (e.g. landing fast) bleeds off once the hop window has passed.
+            float target = S.SlideSpeed + Boost;
+            if (speed > target && sinceLanding >= S.HopWindow)
+                speed = Math.Max(target, speed - S.OverspeedDecay * dt);
 
             Vec3 wish = WishDir(in input);
             if (wish.SqrMagnitude > 0.01f)
@@ -265,6 +324,16 @@ namespace VHOLTAT.Movement
 
         private void Jump()
         {
+            // Hops right after landing feed momentum: slide-hops always, any hop when timed perfectly.
+            if (sinceLanding <= S.HopWindow)
+            {
+                float gain = 0f;
+                if (State == MoveState.Slide)
+                    gain += S.SlideHopGain;
+                if (sinceLanding <= S.PerfectHopWindow)
+                    gain += S.PerfectHopGain;
+                Gain(gain);
+            }
             Velocity.Y = S.JumpSpeed;
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
@@ -342,7 +411,7 @@ namespace VHOLTAT.Movement
             if (wish.SqrMagnitude < 0.0001f)
                 return;
             var flat = Velocity.Flat;
-            float cap = Math.Max(flat.Magnitude, S.RunSpeed);
+            float cap = Math.Max(flat.Magnitude, S.RunSpeed + Boost);
             var steered = Vec3.ClampMagnitude(MoveTowards(flat, wish * cap, S.AirAcceleration * dt), cap);
             Velocity.X = steered.X;
             Velocity.Z = steered.Z;
@@ -372,7 +441,7 @@ namespace VHOLTAT.Movement
 
             WallNormal = right ? sensors.WallRightNormal : sensors.WallLeftNormal;
             Vec3 along = Vec3.ProjectOnPlane(dir, WallNormal.Flat.Normalized).Normalized;
-            Velocity = along * Math.Max(speed, S.WallRunSpeed);
+            Velocity = along * Math.Max(speed, S.WallRunSpeed + Boost);
             Velocity.Y = S.WallRunStartUpSpeed;
             SetState(right ? MoveState.WallRunRight : MoveState.WallRunLeft);
             Events |= MoveEvents.WallRunStarted;
@@ -424,7 +493,7 @@ namespace VHOLTAT.Movement
             }
 
             var flat = Velocity.Flat;
-            float speed = Math.Max(flat.Magnitude, S.WallRunSpeed);
+            float speed = Math.Max(flat.Magnitude, S.WallRunSpeed + Boost);
             Vec3 along = Vec3.ProjectOnPlane(flat, nFlat).Normalized;
             if (along.SqrMagnitude < 0.01f)
             {
@@ -487,7 +556,8 @@ namespace VHOLTAT.Movement
                 dir = (tangent * (float)Math.Sqrt(1f - minSin * minSin) + n * minSin).Normalized;
             }
 
-            Velocity = dir * speed;
+            AddBoost(S.WallJumpGain);
+            Velocity = dir * (speed + S.WallJumpGain);
             Velocity.Y = S.WallJumpUpSpeed;
             wallJumpGraceTimer = 0f;
             jumpBufferTimer = 0f;

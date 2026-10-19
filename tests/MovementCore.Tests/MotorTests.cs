@@ -163,15 +163,65 @@ public class MotorTests
     }
 
     [Fact]
-    public void HopKeepsOverspeedButStandingBleedsIt()
+    public void LandingFastKeepsSomeMomentumThenItDecays()
     {
         var m = new MovementMotor(new MovementSettings());
         m.Reset(new Vec3(0f, -1f, 16f), grounded: false);
         m.Step(Input(moveY: 1f), Ground(), Dt); // land
+        Assert.Equal((16f - m.S.HopLandingLoss - m.S.RunSpeed) * m.S.LandingCarry, m.Boost, 2);
         Run(m, Input(moveY: 1f), Ground(), 0.1f);
         Assert.True(m.HorizontalSpeed > 15.5f, "speed kept inside hop window");
+        Run(m, Input(moveY: 1f), Ground(), 0.4f);
+        Assert.Equal(m.S.RunSpeed + m.Boost, m.HorizontalSpeed, 1);
+        Run(m, Input(moveY: 1f), Ground(), 6f);
+        Assert.Equal(m.S.RunSpeed, m.HorizontalSpeed, 1);
+    }
+
+    [Fact]
+    public void SlideHopChainBuildsSpeed()
+    {
+        var m = Grounded();
         Run(m, Input(moveY: 1f), Ground(), 0.3f);
-        Assert.Equal(m.S.RunSpeed, m.HorizontalSpeed, 2);
+        m.Step(Input(moveY: 1f, crouch: true, crouchPressed: true), Ground(), Dt);
+        float first = 0f;
+        for (int hop = 0; hop < 5; hop++)
+        {
+            m.Step(Input(moveY: 1f, crouch: true, jump: true), Ground(), Dt); // jump out of the slide
+            if (hop == 0) first = m.HorizontalSpeed;
+            Run(m, Input(moveY: 1f, crouch: true), Ground(false), 0.5f);
+            m.Step(Input(moveY: 1f, crouch: true), Ground(), Dt); // land back into the slide
+            Assert.Equal(MoveState.Slide, m.State);
+        }
+        Assert.True(m.HorizontalSpeed > first + 2f, $"chain should build: {first} -> {m.HorizontalSpeed}");
+        Assert.True(m.Boost > 2f);
+    }
+
+    [Fact]
+    public void WallJumpAddsMomentum()
+    {
+        var m = new MovementMotor(new MovementSettings());
+        m.Reset(new Vec3(0f, 0f, 13f), grounded: false);
+        var s = Ground(false);
+        s.WallRight = true;
+        s.WallRightNormal = new Vec3(-1f, 0f, 0f);
+        m.Step(Input(moveY: 1f), s, Dt);
+        m.Step(Input(moveY: 1f, jump: true), s, Dt);
+        Assert.Equal(m.S.WallRunSpeed + m.S.WallJumpGain, m.HorizontalSpeed, 1);
+        Assert.Equal(m.S.WallJumpGain, m.Boost, 2);
+    }
+
+    [Fact]
+    public void CrouchWalkClearsMomentum()
+    {
+        var m = new MovementMotor(new MovementSettings());
+        m.Reset(new Vec3(0f, -1f, 16f), grounded: false);
+        m.Step(Input(moveY: 1f), Ground(), Dt);
+        Assert.True(m.Boost > 0f);
+        Run(m, Input(moveY: 1f, crouch: true), Ground(), 2f); // slide ends into crouch eventually or stays sliding
+        m.Step(Input(crouch: true), Ground(), Dt);
+        Run(m, Input(crouch: true), Ground(), 4f);
+        Assert.Equal(MoveState.Crouch, m.State);
+        Assert.Equal(0f, m.Boost);
     }
 
     [Fact]

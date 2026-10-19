@@ -46,7 +46,8 @@ namespace VHOLTAT.DebugOverlay
             }
             var s = MotorDriver.Sensors;
             sb.Append("state ").Append(m.State).Append("  t=").Append(m.StateTime.ToString("0.00")).Append('\n');
-            sb.Append("speed ").Append(m.HorizontalSpeed.ToString("0.0")).Append(" m/s   peak ").Append(peakSpeed.ToString("0.0")).Append('\n');
+            sb.Append("speed ").Append(m.HorizontalSpeed.ToString("0.0")).Append(" m/s   peak ").Append(peakSpeed.ToString("0.0"))
+              .Append("   boost ").Append(m.Boost.ToString("0.0")).Append('\n');
             sb.Append("vy ").Append(m.Velocity.Y.ToString("0.0")).Append("   grounded ").Append(s.Grounded ? "yes" : "no")
               .Append("   h ").Append(s.HeightAboveGround.ToString("0.0")).Append('\n');
             sb.Append("wall L ").Append(s.WallLeft ? "#" : "-").Append("  R ").Append(s.WallRight ? "#" : "-")
