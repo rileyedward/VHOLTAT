@@ -123,8 +123,9 @@ namespace VHOLTAT.Adapter
 
             float dt = Time.deltaTime;
             float dy = fpc.moveDirection.y - baselineY;
+            // Vanilla writes to moveDirection.y mean "set vertical speed" (knockback, vaults, ladders, pads).
             if (Mathf.Abs(dy) > 0.01f)
-                Motor.AddImpulse(new Vec3(0f, dy, 0f));
+                Motor.AddImpulse(new Vec3(0f, fpc.moveDirection.y - Motor.Velocity.Y, 0f));
 
             bool canMove = fpc.sync___get_value_canMove();
             bool blocked = !canMove || pm.pause || (pm.steamPlaying && pm.chatting);
