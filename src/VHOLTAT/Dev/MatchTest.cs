@@ -61,6 +61,38 @@ namespace VHOLTAT.Dev
             Plugin.Logger.LogInfo("[test] done");
         }
 
+        /// <summary>
+        /// Dev ([Dev] TestMode = lobby): host a real match for manual play. Creates the lobby, waits for the client copy
+        /// (an idle second player), starts the match on a random arena (or [Dev] TestMap unless it is "random") and hands
+        /// control back. Nothing is scripted.
+        /// </summary>
+        public static IEnumerator HostForPlay()
+        {
+            Plugin.Logger.LogInfo("[match] creating lobby for manual play");
+            SteamLobby.Instance.CreateLobbyDirect();
+            for (float w = 0f; w < 180f && !(InstanceFinder.IsServer && InstanceFinder.ServerManager.Clients.Count >= 2); w += 1f)
+                yield return new WaitForSeconds(1f);
+            Plugin.Logger.LogInfo($"[match] {InstanceFinder.ServerManager.Clients.Count} connections");
+            yield return new WaitForSeconds(4f);
+
+            string map = Plugin.Settings.DevTestMap.Value;
+            if (map == "random" || map == "Arena_00")
+            {
+                var pool = new[] { "Arena_01", "Arena_02", "Arena_03", "Arena_05", "Arena_07", "Arena_10", "Neo_Arena_00",
+                    "Neo_Arena_03", "Neo_Arena_07", "Chateaux_01", "Chateaux_04", "Corridor_02", "Scaffoldingue_00",
+                    "Republic_02", "HK_02", "WestVillage_04", "Hinterland_00", "TerminalPalace_00" };
+                map = pool[Random.Range(0, pool.Length)];
+            }
+            var motor = SceneMotor.Instance;
+            motor.PlayListMaps.Clear();
+            motor.PlayListMapsQueue.Clear();
+            motor.PlayListMaps.Add(map);
+            motor.PlayListMapsQueue.Enqueue(map);
+            Plugin.Logger.LogInfo($"[match] starting the match on {map}");
+            PauseManager.Instance.StartGameSteam();
+            Plugin.Logger.LogInfo("[test] done (match running for manual play)");
+        }
+
         private static IEnumerator WaitForLocal(FirstPersonController old, System.Action<FirstPersonController> found)
         {
             for (float w = 0f; w < 60f; w += 0.5f)
