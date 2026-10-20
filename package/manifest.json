@@ -1,6 +1,6 @@
 {
   "name": "VHOLTAT",
-  "version_number": "0.3.0",
+  "version_number": "0.3.1",
   "website_url": "",
   "description": "VHOLUME-style parkour for STRAFTAT: momentum, slides, wall runs, wall jumps, vaults and mantles.",
   "dependencies": [
