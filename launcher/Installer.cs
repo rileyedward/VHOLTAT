@@ -39,7 +39,8 @@ namespace VHOLTAT.Launcher
             log($"Installing VHOLTAT ({from}) into {paths.Profile}");
             Directory.CreateDirectory(paths.Profile);
 
-            if (!File.Exists(paths.Preloader) || !State.Installed.Contains(LauncherConfig.BepInEx.File))
+            // BepInEx is unpacked once and kept across updates; it's only (re)installed if a file the launcher needs is gone.
+            if (!File.Exists(paths.Preloader) || !File.Exists(paths.ProfileLoader) || !State.Installed.Contains(LauncherConfig.BepInEx.File))
             {
                 var bepinex = await sources.Get(LauncherConfig.BepInEx);
                 ExtractAll(bepinex, paths.Profile, keepPrefix: "BepInEx/config/");
@@ -55,7 +56,8 @@ namespace VHOLTAT.Launcher
             var version = AssemblyName.GetAssemblyName(paths.PluginDll).Version;
             State.ModVersion = new Version(version.Major, version.Minor, Math.Max(version.Build, 0)).ToString(3);
             SaveState();
-            log($"VHOLTAT {State.ModVersion} installed");
+            log($"VHOLTAT {State.ModVersion} written to {paths.PluginDir}");
+            if (File.Exists(paths.ModConfig)) log($"Your settings were kept ({paths.ModConfig})");
             return State.ModVersion;
         }
 
@@ -108,24 +110,33 @@ namespace VHOLTAT.Launcher
         public string PrepareGameFolder(string gameDir)
         {
             LoadState();
-            if (!File.Exists(paths.Preloader)) throw new InvalidOperationException("VHOLTAT isn't installed yet.");
+            if (!File.Exists(paths.Preloader) || !File.Exists(paths.ProfileLoader))
+                throw new LauncherError("VHOLTAT isn't installed yet (or its BepInEx files are missing).", "Press Install (or run: install) first.");
             var packIni = Path.Combine(paths.Profile, "doorstop_config.ini");
             var packIniText = File.Exists(packIni) ? File.ReadAllText(packIni) : "";
 
-            if (State.GameFilesDir != null && !string.Equals(State.GameFilesDir, gameDir, StringComparison.OrdinalIgnoreCase))
-                RemoveGameFiles();
-            State.GameFilesDir = gameDir;
-
-            // A BepInEx installed straight into the game folder uses the same two files; leave them alone and rely on
-            // the launch arguments instead.
-            if (Directory.Exists(Path.Combine(gameDir, "BepInEx", "core")))
-                log("STRAFTAT's folder has its own BepInEx; leaving its doorstop files alone.");
-            else
+            // State is saved even if a write fails, so uninstall still knows what was put where.
+            try
             {
-                PlaceGameFile(gameDir, "winhttp.dll", File.ReadAllBytes(Path.Combine(paths.Profile, "winhttp.dll")));
-                PlaceGameFile(gameDir, "doorstop_config.ini", Encoding.UTF8.GetBytes(GameFolderIni(packIniText)));
+                if (State.GameFilesDir != null && !string.Equals(State.GameFilesDir, gameDir, StringComparison.OrdinalIgnoreCase))
+                    RemoveGameFiles();
+                State.GameFilesDir = gameDir;
+
+                // A BepInEx installed straight into the game folder uses the same two files; leave them alone and rely on
+                // the launch arguments instead.
+                if (Directory.Exists(Path.Combine(gameDir, "BepInEx", "core")))
+                    log("STRAFTAT's folder has its own BepInEx; leaving its doorstop files alone.");
+                else
+                {
+                    var changed = PlaceGameFile(gameDir, "winhttp.dll", File.ReadAllBytes(paths.ProfileLoader));
+                    changed |= PlaceGameFile(gameDir, "doorstop_config.ini", Encoding.UTF8.GetBytes(GameFolderIni(packIniText)));
+                    if (!changed) log("STRAFTAT folder checked: winhttp.dll and the switched-off doorstop_config.ini are in place.");
+                }
             }
-            SaveState();
+            finally
+            {
+                SaveState();
+            }
             // BepInEx 5.4.23 ships doorstop 4.
             return $"--doorstop-enabled true --doorstop-target-assembly \"{paths.Preloader}\"";
         }
@@ -155,7 +166,8 @@ namespace VHOLTAT.Launcher
             return k == "targetassembly" || k == "dllsearchpathoverride" || k == "bootconfigoverride";
         }
 
-        private void PlaceGameFile(string gameDir, string name, byte[] content)
+        /// <summary>Writes one file into the STRAFTAT folder unless it's already there; true if it wrote something.</summary>
+        private bool PlaceGameFile(string gameDir, string name, byte[] content)
         {
             var target = Path.Combine(gameDir, name);
             var hash = Sha256(content);
@@ -163,20 +175,41 @@ namespace VHOLTAT.Launcher
             if (File.Exists(target) && Sources.Sha256(target) == hash)
             {
                 if (record == null) State.GameFiles.Add(new GameFile { Name = name, Sha256 = hash, WasThere = true });
-                return;
+                return false;
             }
             var backedUp = record?.BackedUp ?? false;
-            if (File.Exists(target) && (record == null || Sources.Sha256(target) != record.Sha256))
+            try
             {
-                Directory.CreateDirectory(paths.Backup);
-                File.Copy(target, Path.Combine(paths.Backup, name), overwrite: true);
-                backedUp = true;
-                log($"Saved STRAFTAT's existing {name} to {paths.Backup}");
+                if (File.Exists(target) && (record == null || Sources.Sha256(target) != record.Sha256))
+                {
+                    Directory.CreateDirectory(paths.Backup);
+                    var backup = Path.Combine(paths.Backup, name);
+                    if (File.Exists(backup)) File.SetAttributes(backup, FileAttributes.Normal);
+                    File.Copy(target, backup, overwrite: true);
+                    File.SetAttributes(backup, FileAttributes.Normal);
+                    backedUp = true;
+                    log($"Saved STRAFTAT's existing {name} to {paths.Backup}");
+                }
+                File.WriteAllBytes(target, content);
             }
-            File.WriteAllBytes(target, content);
+            catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
+            {
+                throw GameFolderError($"Couldn't write {name} to the STRAFTAT folder", e);
+            }
             State.GameFiles.RemoveAll(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             State.GameFiles.Add(new GameFile { Name = name, Sha256 = hash, BackedUp = backedUp });
             log($"Wrote {name} to the STRAFTAT folder");
+            return true;
+        }
+
+        /// <summary>Access denied usually means a protected folder (or a read-only file); anything else is usually a lock.</summary>
+        private static LauncherError GameFolderError(string what, Exception e)
+        {
+            var reason = e.GetBaseException().Message.TrimEnd('.');
+            return e is UnauthorizedAccessException
+                ? new LauncherError($"{what}: access denied ({reason}).",
+                    "Run the launcher as administrator once (right-click it, Run as administrator), or clear the file's read-only flag.", e)
+                : new LauncherError($"{what} ({reason}).", "Close STRAFTAT and anything else using its folder, then try again.", e);
         }
 
         /// <summary>Takes the launcher's files back out of the STRAFTAT folder, restoring any it replaced.</summary>
@@ -188,15 +221,22 @@ namespace VHOLTAT.Launcher
                 var target = Path.Combine(State.GameFilesDir, file.Name);
                 var backup = Path.Combine(paths.Backup, file.Name);
                 if (file.WasThere || (File.Exists(target) && Sources.Sha256(target) != file.Sha256)) continue;
-                if (file.BackedUp && File.Exists(backup))
+                try
                 {
-                    File.Copy(backup, target, overwrite: true);
-                    log($"Restored STRAFTAT's original {file.Name}");
+                    if (file.BackedUp && File.Exists(backup))
+                    {
+                        File.Copy(backup, target, overwrite: true);
+                        log($"Restored STRAFTAT's original {file.Name}");
+                    }
+                    else if (File.Exists(target))
+                    {
+                        File.Delete(target);
+                        log($"Removed {file.Name} from the STRAFTAT folder");
+                    }
                 }
-                else if (File.Exists(target))
+                catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
                 {
-                    File.Delete(target);
-                    log($"Removed {file.Name} from the STRAFTAT folder");
+                    throw GameFolderError($"Couldn't remove {file.Name} from the STRAFTAT folder", e);
                 }
             }
             State.GameFiles.Clear();
@@ -229,9 +269,13 @@ namespace VHOLTAT.Launcher
             return BitConverter.ToString(sha.ComputeHash(content)).Replace("-", "").ToLowerInvariant();
         }
 
+        /// <summary>Deletes a folder, read-only files included.</summary>
         internal static void DeleteDirectory(string dir)
         {
-            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+            if (!Directory.Exists(dir)) return;
+            foreach (var file in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+                File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(dir, recursive: true);
         }
     }
 }

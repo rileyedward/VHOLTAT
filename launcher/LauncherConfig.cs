@@ -99,6 +99,8 @@ namespace VHOLTAT.Launcher
         public string StateFile => Path.Combine(Home, "state.json");
         public string LogFile => Path.Combine(Home, "launcher.log");
 
+        /// <summary>Doorstop's loader as BepInEx ships it; copied into the STRAFTAT folder.</summary>
+        public string ProfileLoader => Path.Combine(Profile, "winhttp.dll");
         public string BepInEx => Path.Combine(Profile, "BepInEx");
         public string Preloader => Path.Combine(BepInEx, "core", "BepInEx.Preloader.dll");
         public string Config => Path.Combine(BepInEx, "config");

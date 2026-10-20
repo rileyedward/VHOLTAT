@@ -10,28 +10,29 @@ namespace VHOLTAT.Launcher
     /// VHOLTAT-Launcher.exe                     opens the launcher window
     /// VHOLTAT-Launcher.exe &lt;command&gt;           runs one step without the window and exits:
     ///   status                                 what's found and installed
-    ///   install                                install or update VHOLTAT and BepInEx, and prepare the STRAFTAT folder
+    ///   install                                install VHOLTAT and BepInEx, or update VHOLTAT in place, and prepare the STRAFTAT folder
     ///   play [--dry-run]                       start STRAFTAT with VHOLTAT
+    ///   play-vanilla [--dry-run]               start plain STRAFTAT through Steam
     ///   uninstall [--keep-config]
     /// Options: --zip &lt;file&gt; (install the plugin from this release zip), --home &lt;folder&gt; (instead of
-    /// %APPDATA%\VHOLTAT), --straftat &lt;folder&gt;.
+    /// %APPDATA%\VHOLTAT), --straftat &lt;folder&gt;, --steam &lt;folder&gt; (Steam's folder, instead of the registry's).
     /// </summary>
     internal static class Program
     {
         [STAThread]
         private static int Main(string[] args)
         {
-            string command = null, zip = null, home = null, straftat = null;
+            string command = null, zip = null, home = null, straftat = null, steam = null;
             bool keepConfig = false, dryRun = false;
             for (var i = 0; i < args.Length; i++)
             {
                 var a = args[i].ToLowerInvariant();
                 switch (a)
                 {
-                    case "--zip": case "--home": case "--straftat":
+                    case "--zip": case "--home": case "--straftat": case "--steam":
                         if (i + 1 >= args.Length) return Fail($"{args[i]} needs a value.");
                         var value = args[++i];
-                        if (a == "--zip") zip = value; else if (a == "--home") home = value; else straftat = value;
+                        if (a == "--zip") zip = value; else if (a == "--home") home = value; else if (a == "--steam") steam = value; else straftat = value;
                         break;
                     case "--keep-config": keepConfig = true; break;
                     case "--dry-run": dryRun = true; break;
@@ -47,13 +48,14 @@ namespace VHOLTAT.Launcher
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new MainForm(paths, straftat, zip));
+                Application.Run(new MainForm(paths, straftat, zip, steam));
                 return 0;
             }
 
             AttachConsole(-1);
             Console.WriteLine();
-            using var launcher = new Launcher(paths, Console.WriteLine, straftat);
+            using var launcher = new Launcher(paths, Console.WriteLine, straftat, steam);
+            launcher.CommandLine = true;
             try
             {
                 Run(launcher, command, zip, keepConfig, dryRun).GetAwaiter().GetResult();
@@ -61,7 +63,7 @@ namespace VHOLTAT.Launcher
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error: {e.GetBaseException().Message}");
+                launcher.LogError(e);
                 return 1;
             }
         }
@@ -74,13 +76,19 @@ namespace VHOLTAT.Launcher
                 case "status":
                     await launcher.CheckForUpdates();
                     var state = launcher.State;
-                    var update = launcher.UpdateAvailable ? $" ({launcher.BestVersion.ToString(3)} available)" : "";
+                    var update = launcher.ModStatus switch
+                    {
+                        ModStatus.Older => $" (update to {launcher.BestVersion.ToString(3)} available: run install)",
+                        ModStatus.Newer => $" (newer than the {launcher.BestVersion.ToString(3)} this launcher carries; kept)",
+                        _ => "",
+                    };
+                    var steamState = launcher.SteamPath == null ? "not found" : $"{launcher.SteamPath} ({(Steam.IsSteamRunning(launcher.SteamPath) ? "running" : "not running")})";
                     var gameFiles = state.GameFiles.Count > 0
                         ? string.Join(", ", state.GameFiles.Select(f => f.Name)) + " in " + state.GameFilesDir
                         : "none";
                     Console.WriteLine($"Launcher:   {LauncherConfig.LauncherVersion.ToString(3)} (carries VHOLTAT {LauncherConfig.BundledVersion?.ToString(3) ?? "none"})");
                     Console.WriteLine($"Home:       {launcher.Paths.Home}");
-                    Console.WriteLine($"Steam:      {launcher.SteamPath ?? "not found"}");
+                    Console.WriteLine($"Steam:      {steamState}");
                     Console.WriteLine($"STRAFTAT:   {launcher.StraftatPath ?? "not found"}");
                     Console.WriteLine($"VHOLTAT:    {(launcher.IsInstalled ? "installed " + state.ModVersion : "not installed")}{update}");
                     Console.WriteLine($"Game files: {gameFiles}");
@@ -93,11 +101,14 @@ namespace VHOLTAT.Launcher
                 case "play":
                     launcher.Play(dryRun);
                     break;
+                case "play-vanilla":
+                    launcher.PlayVanilla(dryRun);
+                    break;
                 case "uninstall":
                     launcher.Uninstall(keepConfig);
                     break;
                 default:
-                    throw new ArgumentException($"Unknown command '{command}'. Use status, install, play or uninstall.");
+                    throw new ArgumentException($"Unknown command '{command}'. Use status, install, play, play-vanilla or uninstall.");
             }
         }
 
