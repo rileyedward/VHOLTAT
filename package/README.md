@@ -26,9 +26,14 @@ knockback are unchanged.
 - **F6** switch between VHOLTAT and vanilla movement
 - **F7** speed / state overlay
 
+## Steam Deck / Linux
+
+Set STRAFTAT's launch options to `WINEDLLOVERRIDES="winhttp=n,b" %command%`.
+
 ## Settings
 
-`BepInEx/config/dev.riley.vholtat.cfg`. Saved changes apply while the game runs. In someone else's lobby the host's
+Esc, then **VHOLTAT settings** in the pause menu (camera, sounds, speedometer...). Everything is also in
+`BepInEx/config/dev.riley.vholtat.cfg`; saved changes apply while the game runs. In someone else's lobby the host's
 movement settings are used.
 
 Clean-room project: the movement was rebuilt from a written description of VHOLUME's behaviour; no VHOLUME code or
