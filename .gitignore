@@ -28,3 +28,11 @@ Thumbs.db
 .vscode/
 
 dist/
+
+# Logs, saves and test leftovers
+*.log
+*.sav
+*.json.gz
+client-instance/
+scratchpad/
+vholtat_*.png

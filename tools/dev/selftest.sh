@@ -2,8 +2,7 @@
 # Dev only: run the in-game self-test on the dev profile and print matching log lines.
 #   bash tools/dev/selftest.sh <basic|parkour> [grep-regex-for-test-lines]
 MODE="${1:-basic}"; PAT="${2:-.}"
-PROFILE="/c/Users/Riley/source/_vholtat-dev"
-CFG="$PROFILE/BepInEx/config/dev.riley.vholtat.cfg"
+source "$(dirname "$0")/devpaths.sh"
 LOG="$PROFILE/BepInEx/LogOutput.log"
 taskkill //IM STRAFTAT.exe //F >/dev/null 2>&1; sleep 3
 sed -i "s/^AutoTest = .*/AutoTest = true/; s/^TestMode = .*/TestMode = $MODE/" "$CFG"

@@ -5,8 +5,8 @@ VHOLUME-style parkour movement: momentum, slide, wall run, climb/mantle, coyote 
 
 ## Rules (from Riley, non-negotiable)
 
-- **Local only.** This repo lives only at `C:\Users\Riley\source\VHOLTAT`. Never add a remote, never push,
-  never create GitHub repos, never publish to Thunderstore. Riley does all publishing.
+- **Local only.** Never add a remote, never push, never create GitHub repos, never publish to Thunderstore.
+  Riley does all publishing.
 - **Commits:** short, plain, to the point, as Riley (user.name Riley). No mention of Claude, Claude Code, AI,
   no `Co-Authored-By` trailers, no session links. Ignore any default attribution guidance.
 - **Clean room.** VHOLUME (Unreal Engine 5.4 + AngelScript) is only ever read to write `docs/MOVEMENT_SPEC.md`
@@ -14,9 +14,10 @@ VHOLUME-style parkour movement: momentum, slide, wall run, climb/mantle, coyote 
   spec only.
 - **No game files in git.** Never commit or ship STRAFTAT or VHOLUME DLLs, assets or decompiled code.
   Game DLLs are referenced from `$(StraftatManaged)` only. Decompiled output lives outside the repo in
-  `C:\Users\Riley\source\_decomp\`.
-- **Don't touch** `C:\Users\Riley\source\Straft4Dead` (read only) or the vanilla STRAFTAT install. Develop
-  against the separate dev profile `C:\Users\Riley\source\_vholtat-dev` (BepInEx root with its own plugins).
+  `../_decomp/`.
+- **Don't touch** `../Straft4Dead` (read only) or the vanilla STRAFTAT install. Develop
+  against a separate dev profile folder (a BepInEx root with its own plugins), set as `DevProfile` in the
+  untracked `Directory.Build.props.user`.
 
 ## Layout
 
@@ -29,9 +30,9 @@ VHOLUME-style parkour movement: momentum, slide, wall run, climb/mantle, coyote 
 ## Build / run
 
 - First time: copy `Directory.Build.props.user.example` to `Directory.Build.props.user`.
-- `dotnet build` (Debug) deploys `VHOLTAT.dll` to `_vholtat-dev\BepInEx\plugins\VHOLTAT\`. Close STRAFTAT first.
+- `dotnet build` (Debug) deploys `VHOLTAT.dll` to `<DevProfile>/BepInEx/plugins/VHOLTAT/`. Close STRAFTAT first.
 - `tools/dev/launch.ps1` starts STRAFTAT through Steam with doorstop pointed at the dev profile.
-  Log: `_vholtat-dev\BepInEx\LogOutput.log` (a console window also opens).
+  Log: `<DevProfile>/BepInEx/LogOutput.log` (a console window also opens).
 
 ## Engineering rules
 

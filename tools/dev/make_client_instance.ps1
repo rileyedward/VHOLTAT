@@ -5,10 +5,19 @@
 # dev profile (so Debug deploys reach both copies). Config and logs are the copy's own.
 param(
     [string] $Straftat = "C:\Program Files (x86)\Steam\steamapps\common\STRAFTAT",
-    [string] $Profile = "C:\Users\Riley\source\_vholtat-dev",
-    [string] $Out = "C:\Users\Riley\source\_vholtat-dev\client-instance"
+    [string] $Profile = "",
+    [string] $Out = ""
 )
 $ErrorActionPreference = "Stop"
+$propsUser = Join-Path $PSScriptRoot "..\..\Directory.Build.props.user"
+function Get-DevProfile {
+    if (-not (Test-Path $propsUser)) { throw "Copy Directory.Build.props.user.example to Directory.Build.props.user and set DevProfile." }
+    $p = ([xml](Get-Content $propsUser)).Project.PropertyGroup.DevProfile | Where-Object { $_ } | Select-Object -First 1
+    if (-not $p) { throw "DevProfile is not set in Directory.Build.props.user" }
+    return $p
+}
+if (-not $Profile) { $Profile = Get-DevProfile }
+if (-not $Out) { $Out = Join-Path $Profile "client-instance" }
 New-Item -ItemType Directory -Force $Out, "$Out\BepInEx", "$Out\BepInEx\config", "$Out\BepInEx\cache" | Out-Null
 foreach ($f in "STRAFTAT.exe", "UnityPlayer.dll", "winhttp.dll", ".doorstop_version") {
     if (Test-Path "$Straftat\$f") { Copy-Item "$Straftat\$f" "$Out\$f" -Force }

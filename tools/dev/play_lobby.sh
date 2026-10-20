@@ -2,9 +2,8 @@
 # Dev only: host a real match on a random map with an idle second player (the client copy), then leave it to you.
 #   bash tools/dev/play_lobby.sh [map|random]
 MAP="${1:-random}"
-PROFILE="/c/Users/Riley/source/_vholtat-dev"
+source "$(dirname "$0")/devpaths.sh"
 CLIENT="$PROFILE/client-instance"
-CFG="$PROFILE/BepInEx/config/dev.riley.vholtat.cfg"
 taskkill //IM STRAFTAT.exe //F >/dev/null 2>&1; sleep 3
 sed -i "s/^AutoTest = .*/AutoTest = true/; s/^TestMode = .*/TestMode = lobby/; s/^TestMap = .*/TestMap = $MAP/" "$CFG"
 rm -f "$PROFILE/BepInEx/LogOutput.log"

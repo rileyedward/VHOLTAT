@@ -2,7 +2,7 @@
 
 Notes on existing work we can lean on. Nothing here is copied code; it records patterns and decisions.
 
-## Straft4Dead (`C:\Users\Riley\source\Straft4Dead`, read only)
+## Straft4Dead (`../Straft4Dead`, read only)
 
 Reused as-is (as patterns, re-typed for this repo):
 
@@ -13,7 +13,7 @@ Reused as-is (as patterns, re-typed for this repo):
 - **Launching a profile without touching the game folder.** Straft4Dead's launcher starts STRAFTAT with
   `steam -applaunch 2386720 --doorstop-enabled true --doorstop-target-assembly <profile>\BepInEx\core\BepInEx.Preloader.dll`.
   Doorstop 4's command-line args override the game folder's `doorstop_config.ini`, so a profile can live anywhere.
-  VHOLTAT's `tools/dev/launch.ps1` does exactly this for `C:\Users\Riley\source\_vholtat-dev` (verified
+  VHOLTAT's `tools/dev/launch.ps1` does exactly this for `the dev profile folder (`DevProfile` in Directory.Build.props.user)` (verified
   2026-10-19: only VHOLTAT loads; the Straft4Dead plugin in the STRAFTAT folder is not picked up).
 - **Matchmaking key.** STRAFTAT ships `ComputerysModdingUtilities.dll`; `AssemblyScanner.CreateMatchMakingKey`
   hashes every loaded plugin assembly (name@version) that is not marked `[StraftatMod(isVanillaCompatible: true)]`.
@@ -33,7 +33,7 @@ Reused as-is (as patterns, re-typed for this repo):
 
 ## Straftat Eights (MRog40ST, github.com/MRog40/StraftatEights, Thunderstore `MRog40ST-Eights` 0.4.87)
 
-Read from a shallow clone in `C:\Users\Riley\source\_decomp\eights` (outside this repo).
+Read from a shallow clone in `../_decomp/eights` (outside this repo).
 
 - **Movement precedent.** Eights already patches `FirstPersonController` by name: `Update`, `HandleMovementInput`,
   `ApplyFinalMovements`, `HandleCrouch`, `Slide`, `Jump`, `HandleAddingForce`, `BForce`/`HandleBForce`,
