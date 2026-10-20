@@ -19,18 +19,32 @@ namespace VHOLTAT
         {
             Logger = base.Logger;
             Settings = new PluginConfig(Config);
-            MotorDriver.Init(Settings.Movement, Settings.Enabled.Value);
-            Settings.Enabled.SettingChanged += (_, __) => MotorDriver.SetActive(Settings.Enabled.Value);
-
-            new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll(typeof(Plugin).Assembly);
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION} (made for STRAFTAT {Compat.BuiltFor}, running on game build {Application.version}, Unity {Application.unityVersion})");
 
             // The BepInEx manager object doesn't survive STRAFTAT's startup, so hotkeys and the overlay live on our
             // own persistent object.
             var runtime = new GameObject("VHOLTAT.Runtime") { hideFlags = HideFlags.HideAndDontSave };
             DontDestroyOnLoad(runtime);
-            runtime.AddComponent<Runtime>();
+            runtime.AddComponent<CompatNotice>();
 
-            Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION} loaded (Unity {Application.unityVersion}, active={MotorDriver.Active})");
+            // A STRAFTAT update that renamed or removed something we patch leaves VHOLTAT off instead of half-working.
+            if (!Compat.Check())
+                return;
+            var harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
+            try
+            {
+                harmony.PatchAll(typeof(Plugin).Assembly);
+                MotorDriver.Init(Settings.Movement, Settings.Enabled.Value);
+            }
+            catch (System.Exception ex)
+            {
+                harmony.UnpatchSelf();
+                Compat.Fail("patching failed (" + ex.GetType().Name + ": " + ex.Message + ")");
+                return;
+            }
+            Settings.Enabled.SettingChanged += (_, __) => MotorDriver.SetActive(Settings.Enabled.Value);
+            runtime.AddComponent<Runtime>();
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} ready (active={MotorDriver.Active})");
         }
     }
 
