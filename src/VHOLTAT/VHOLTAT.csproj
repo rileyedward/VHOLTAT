@@ -46,6 +46,7 @@
     <Reference Include="UnityEngine.AnimationModule"><HintPath>$(StraftatManaged)\UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.ScreenCaptureModule"><HintPath>$(StraftatManaged)\UnityEngine.ScreenCaptureModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.InputSystem"><HintPath>$(StraftatManaged)\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Postprocessing.Runtime"><HintPath>$(StraftatManaged)\Unity.Postprocessing.Runtime.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Assembly-CSharp"><HintPath>$(StraftatManaged)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="com.rlabrecque.steamworks.net"><HintPath>$(StraftatManaged)\com.rlabrecque.steamworks.net.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="FishNet.Runtime"><HintPath>$(StraftatManaged)\FishNet.Runtime.dll</HintPath><Private>false</Private></Reference>

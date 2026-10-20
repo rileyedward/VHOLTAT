@@ -47,6 +47,8 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<CameraStyle> Camera;
         public readonly ConfigEntry<float> VholumeFov;
         public readonly ConfigEntry<bool> MoveSounds;
+        public readonly ConfigEntry<bool> SpeedBlur;
+        public readonly ConfigEntry<bool> Speedometer;
         public readonly ConfigEntry<bool> LandingDip;
         public readonly ConfigEntry<bool> UseHostSettings;
         public readonly ConfigEntry<int> RemoteInterpolationTicks;
