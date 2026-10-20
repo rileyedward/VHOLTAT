@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1
+
+- Optional VHOLUME-style speedometer (u = cm/s) and speed effect, both off by default (settings window).
+- Startup compatibility guard: if a STRAFTAT update changes something VHOLTAT hooks, it stays off with a notice
+  instead of half-working. Logs the STRAFTAT build it was made for.
+- Launcher: in-place updates keep your settings, "Play vanilla", clearer errors.
+
 ## 0.3.0
 
 - VHOLUME camera is the new default: 100 degree horizontal FOV like VHOLUME (converted for your screen), small

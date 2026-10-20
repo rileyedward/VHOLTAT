@@ -3,6 +3,21 @@
 Research notes on STRAFTAT's player movement (decompiled Assembly-CSharp + player prefab values), written for VHOLTAT.
 What VHOLTAT actually patches is listed in `src/VHOLTAT/Adapter/Patches.cs`; the reasoning is below.
 
+## Current patch set (0.3.x)
+
+- `ApplyFinalMovements` (prefix, skip): the motor moves the player; vanilla force channels are added on top.
+- `Update` (prefix + postfix): early slide flag (skin width), baseline for vertical writes.
+- `Jump`, `Slide`, `HandleSlide`, `CheckForVault` (prefix, skip): VHOLTAT's own jump, slide and vault/mantle.
+- `HandleCameraController` (prefix, skip): VHOLUME camera (horizontal FOV converted from Unity's vertical FOV) or the
+  0.2 "STRAFTAT wide" camera.
+- `HandleAnimation` (postfix): animator values other players see during wall runs and climbs.
+- `Teleport` (prefix + postfix): rotate carried velocity; `AddForce` / `AddHorizontalForce` (postfix): knockback
+  cancels carried momentum like vanilla.
+- Everything VHOLTAT reads or patches is listed in `src/VHOLTAT/Compat.cs` and checked at startup.
+- Camera facts: STRAFTAT's FOV setting (90 by default) is vertical, about 121 degrees horizontal at 16:9; vanilla
+  sprint adds 15 (`runFOV`). VHOLUME's FOV setting (100) is horizontal.
+
+
 
 Snapshot 2026-10-19. Game: Unity 2021.3.45f2, Mono, FishNet 3.10.x, FishySteamworks.
 

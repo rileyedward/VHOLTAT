@@ -62,3 +62,13 @@
   Neo_Arena_03, Backrooms_00; F10 spot marker ([Debug] MarkSpots) for spots found in normal play.
 - Launcher (launcher/, VHOLTAT-Launcher.exe), friends bundle, README, CHANGELOG; release zips now use forward-slash
   entry names (PowerShell 5's Compress-Archive wrote backslashes).
+
+## 2026-10-20 — VHOLUME camera (0.3.0), hardening (0.3.1)
+
+- Riley found 0.2 "like flying". Measured VHOLUME in its own game (scripted input + its speedometer): run 1300 u/s
+  (13 m/s), jump ~8 m/s up, FOV 100 horizontal; Riley's 30 local ghosts: median 17.1 m/s. Movement already matched.
+  Root cause was the camera: STRAFTAT FOV is vertical (90 -> ~121 horizontal, ~134 running with sprint FOV + our kick).
+  0.3.0 ships the VHOLUME camera (100 horizontal, +5/+10 kicks, 6 degree roll toward the wall) as default; the old
+  camera stays as "STRAFTAT wide". Riley: "much much better". Camera and movement are locked again.
+- 0.3.1: optional speedometer / speed effect (off), startup compatibility guard (Compat.cs, --vholtat-compat-test to
+  simulate a game update), launcher polish, docs (Steam Deck note).

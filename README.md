@@ -16,6 +16,25 @@ spec (`docs/MOVEMENT_SPEC.md`, `docs/MOMENTUM_SPEC.md`); no VHOLUME code or asse
 - **Mod managers:** `VHOLTAT-<version>-thunderstore.zip` is a Thunderstore-format package (depends on
   BepInExPack 5.4.2100).
 
+## Camera
+
+By default VHOLTAT uses VHOLUME's camera: 100 degree horizontal FOV (adjustable), small FOV changes when running,
+sliding and wall running, and a 6 degree wall-run roll toward the wall. STRAFTAT's own 90 degree FOV is vertical
+(about 121 degrees horizontal), which makes the same speeds feel much faster. The 0.2 camera is still available as
+"STRAFTAT wide". Optional: a VHOLUME-style speedometer and speed effect. All of it is in the in-game settings window
+(Esc, then **VHOLTAT settings**).
+
+## Steam Deck / Linux (Proton)
+
+BepInEx needs its loader DLL enabled under Proton. Set STRAFTAT's launch options to
+`WINEDLLOVERRIDES="winhttp=n,b" %command%` and install with the manual zip (the launcher is Windows-only).
+
+## Game updates
+
+VHOLTAT checks at startup that everything it hooks in STRAFTAT still exists. If a STRAFTAT update changed something,
+VHOLTAT stays off (vanilla movement) and shows a short notice instead of breaking; the log names what changed and the
+STRAFTAT build VHOLTAT was made for.
+
 ## Multiplayer
 
 Everyone in the lobby needs the same VHOLTAT version. STRAFTAT itself refuses joins whose mods differ, and puts
@@ -41,7 +60,8 @@ with VHOLUME's exact jump. F10 marks a problem spot to `BepInEx/vholtat_spots.tx
 - Hold crouch while running to slide; jump out of a slide to keep its speed.
 - Jump within 0.15 s of landing to keep your speed (bunny hop).
 - Jump next to a wall while holding forward to wall run; jump again to wall jump. Wall to wall builds speed.
-- Hold forward into a wall in the air to climb it; reach a ledge to mantle onto it.
+- Run into waist-high cover to vault it.
+- Hold forward into a wall in the air to climb it (strafe to turn it into a wall run); reach a ledge to mantle onto it.
 - Speed above each move's base is carried: never lost in the air, fades slowly on the ground.
 
 Every number is in `BepInEx/config/dev.riley.vholtat.cfg`; saved edits apply while the game runs.
