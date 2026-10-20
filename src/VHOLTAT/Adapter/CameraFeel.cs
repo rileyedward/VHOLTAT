@@ -19,6 +19,17 @@ namespace VHOLTAT.Adapter
         private static readonly Action<FirstPersonController, float> SideTilt =
             AccessTools.MethodDelegate<Action<FirstPersonController, float>>(AccessTools.Method(typeof(FirstPersonController), "SideTilt"));
 
+        /// <summary>Unity cameras take a vertical FOV; VHOLUME (Unreal) measures it horizontally.</summary>
+        private static float VerticalFov(float horizontalDeg, float aspect) =>
+            2f * Mathf.Atan(Mathf.Tan(horizontalDeg * 0.5f * Mathf.Deg2Rad) / Mathf.Max(0.1f, aspect)) * Mathf.Rad2Deg;
+
+        /// <summary>VHOLUME's head tilt into the strafe, growing with speed up to run speed (positive = vanilla's strafe-left lean).</summary>
+        private static float StrafeTilt(FirstPersonController fpc, MovementMotor m, Config.PluginConfig cfg)
+        {
+            float strafe = fpc.move.ReadValue<Vector2>().x;
+            return -strafe * cfg.StrafeTilt.Value * Mathf.Clamp01(m.HorizontalSpeed / m.S.RunSpeed);
+        }
+
         public static void Apply(FirstPersonController fpc)
         {
             var cam = fpc.playerCamera;
@@ -27,44 +38,47 @@ namespace VHOLTAT.Adapter
             if (cam == null || m == null)
                 return;
 
-            float target;
-            if (fpc.isAiming)
-                target = fpc.zoomFOV;
-            else
+            bool wallRun = m.State == MoveState.WallRunLeft || m.State == MoveState.WallRunRight;
+            float target, k, tilt;
+            if (cfg.Camera.Value == Config.CameraStyle.Vholume)
             {
-                float speed = m.HorizontalSpeed;
-                if (cfg.VholumeFov.Value)
-                {
-                    float kick = m.State == MoveState.WallRunLeft || m.State == MoveState.WallRunRight ? 15f
-                        : m.State == MoveState.Slide ? 10f
-                        : speed > m.S.RunSpeed * 0.75f ? 5f : 0f;
-                    target = fpc.defaultFOV + kick;
-                }
+                // VHOLUME: horizontal FOV from its settings (100), +5 when running fast, +10 sliding or wall running,
+                // eased at rate 10; roll 6 degrees toward the wall; head tilt into strafes.
+                if (fpc.isAiming)
+                    target = fpc.zoomFOV;
                 else
                 {
+                    float kick = wallRun || m.State == MoveState.Slide ? 10f : m.HorizontalSpeed > m.S.RunSpeed * 0.75f ? 5f : 0f;
+                    target = VerticalFov(cfg.VholumeFov.Value + kick, cam.aspect);
+                }
+                k = fpc.isAiming ? 20f : 10f;
+                tilt = m.State == MoveState.WallRunRight ? -6f
+                    : m.State == MoveState.WallRunLeft ? 6f
+                    : StrafeTilt(fpc, m, cfg);
+            }
+            else
+            {
+                if (fpc.isAiming)
+                    target = fpc.zoomFOV;
+                else
+                {
+                    float speed = m.HorizontalSpeed;
                     float baseFov = speed > 1f ? RunFov(fpc) : fpc.defaultFOV;
                     float over = Mathf.InverseLerp(m.S.RunSpeed, cfg.FovFullSpeed.Value, speed);
                     target = baseFov + over * cfg.FovSpeedBonus.Value;
                 }
+                k = fpc.isAiming ? 20f : cfg.FovLerp.Value;
+                float roll = cfg.WallRunRoll.Value;
+                switch (m.State)
+                {
+                    case MoveState.WallRunRight: tilt = roll; break;
+                    case MoveState.WallRunLeft: tilt = -roll; break;
+                    case MoveState.Slide: tilt = -SlideTilt(fpc); break;
+                    default: tilt = StrafeTilt(fpc, m, cfg); break;
+                }
             }
-            float k = fpc.isAiming ? 20f : cfg.FovLerp.Value;
             cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, target, 1f - Mathf.Exp(-k * Time.deltaTime));
 
-            // Positive tilt matches vanilla's strafe-left lean; the wall-run roll is away from the wall by default and
-            // toward it with VholumeWallRunRoll (6 degrees, as in VHOLUME).
-            float roll = cfg.VholumeWallRunRoll.Value ? -6f : cfg.WallRunRoll.Value;
-            float tilt;
-            switch (m.State)
-            {
-                case MoveState.WallRunRight: tilt = roll; break;
-                case MoveState.WallRunLeft: tilt = -roll; break;
-                case MoveState.Slide: tilt = -SlideTilt(fpc); break;
-                default:
-                    // VHOLUME's head tilt into the strafe, growing with speed up to run speed.
-                    float strafe = fpc.move.ReadValue<Vector2>().x;
-                    tilt = -strafe * cfg.StrafeTilt.Value * Mathf.Clamp01(m.HorizontalSpeed / m.S.RunSpeed);
-                    break;
-            }
             if (fpc.camController)
                 SideTilt(fpc, tilt);
         }

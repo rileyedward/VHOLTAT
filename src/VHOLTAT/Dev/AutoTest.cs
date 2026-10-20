@@ -79,6 +79,11 @@ namespace VHOLTAT.Dev
                 yield break;
             }
             LogVanillaTuning(fpc);
+            if (Plugin.Settings.DevTestMode.Value == "enter")
+            {
+                Plugin.Logger.LogInfo("[test] done (entered the map for manual play)");
+                yield break;
+            }
             if (DevNet.Lan)
             {
                 // Wait for the client copy to join, then give it time to load the map and find us.
@@ -327,7 +332,8 @@ namespace VHOLTAT.Dev
                     next += 0.1f;
                     var m = MotorDriver.Motor;
                     var p = MotorDriver.Current != null ? MotorDriver.Current.transform.position : Vector3.zero;
-                    Plugin.Logger.LogInfo($"[test] {name,-10} t={t:0.00} state={m.State,-12} h={m.HorizontalSpeed:0.00} boost={m.Boost:0.00} vy={m.Velocity.Y:0.00} grounded={MotorDriver.Sensors.Grounded} pos=({p.x:0.0},{p.y:0.00},{p.z:0.0})");
+                    var camNow = MotorDriver.Current != null ? MotorDriver.Current.playerCamera : null;
+                    Plugin.Logger.LogInfo($"[test] {name,-10} t={t:0.00} state={m.State,-12} h={m.HorizontalSpeed:0.00} boost={m.Boost:0.00} vy={m.Velocity.Y:0.00} grounded={MotorDriver.Sensors.Grounded} pos=({p.x:0.0},{p.y:0.00},{p.z:0.0}) vfov={(camNow != null ? camNow.fieldOfView : 0f):0.0}");
                 }
                 yield return null;
             }
@@ -347,6 +353,16 @@ namespace VHOLTAT.Dev
                 sb.Append(' ').Append(n).Append('=').Append(fi != null ? fi.GetValue(fpc) : "?");
             }
             var cc = fpc.characterController;
+            var cam = fpc.playerCamera;
+            if (cam != null)
+            {
+                float vfov = cam.fieldOfView;
+                float hfov = 2f * Mathf.Atan(Mathf.Tan(vfov * 0.5f * Mathf.Deg2Rad) * cam.aspect) * Mathf.Rad2Deg;
+                sb.Append($" defaultFOV={fpc.defaultFOV} camVFOV={vfov:0.0} camHFOV={hfov:0.0} aspect={cam.aspect:0.000}");
+                sb.Append($" eyeAboveFeet={(cam.transform.position.y - cc.bounds.min.y):0.00}");
+                var rf = typeof(FirstPersonController).GetField("runFOV", f);
+                sb.Append($" runFOV={(rf != null ? rf.GetValue(fpc) : "?")}");
+            }
             sb.Append($" cc.height={cc.height} radius={cc.radius} center={cc.center} step={cc.stepOffset} slope={cc.slopeLimit} scale={fpc.transform.lossyScale}");
             Plugin.Logger.LogInfo(sb.ToString());
         }

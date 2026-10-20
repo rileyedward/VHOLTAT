@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- VHOLUME camera is the new default: 100 degree horizontal FOV like VHOLUME (converted for your screen), small
+  FOV kicks (+5 running, +10 sliding / wall running), 6 degree wall-run roll toward the wall. The 0.2 camera used
+  STRAFTAT's 90 degree vertical FOV (about 121 horizontal, ~134 while running), which made the same speeds feel far
+  faster than in VHOLUME. It stays selectable as "STRAFTAT wide" ([Camera] Style / settings menu).
+- Movement numbers unchanged: measured in VHOLUME itself (run 1300 u/s = 13 m/s, jump ~8 m/s up) they already match.
+
 ## 0.2.0
 
 - Vault: running into waist-high cover goes over it, keeping 95 / 80 / 70 % of your speed by obstacle height, quicker
