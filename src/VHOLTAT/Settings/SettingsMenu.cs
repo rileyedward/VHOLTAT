@@ -65,11 +65,20 @@ namespace VHOLTAT.Settings
 
             GUILayout.Space(8f);
             GUILayout.Label("Camera and sound", header);
-            c.FovSpeedBonus.Value = Slider("FOV kick at high speed", c.FovSpeedBonus.Value, 0f, 25f, "0");
+            bool vholumeCam = c.Camera.Value == Config.CameraStyle.Vholume;
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Camera", GUILayout.Width(120f));
+            if (GUILayout.Toggle(vholumeCam, " VHOLUME", GUI.skin.button)) c.Camera.Value = Config.CameraStyle.Vholume;
+            if (GUILayout.Toggle(!vholumeCam, " STRAFTAT wide (0.2)", GUI.skin.button)) c.Camera.Value = Config.CameraStyle.StraftatWide;
+            GUILayout.EndHorizontal();
+            if (vholumeCam)
+                c.VholumeFov.Value = Mathf.Round(Slider("FOV (horizontal, VHOLUME = 100)", c.VholumeFov.Value, 80f, 120f, "0"));
+            else
+            {
+                c.FovSpeedBonus.Value = Slider("FOV kick at high speed", c.FovSpeedBonus.Value, 0f, 25f, "0");
+                c.WallRunRoll.Value = Slider("Wall-run camera roll", c.WallRunRoll.Value, 0f, 15f, "0");
+            }
             c.StrafeTilt.Value = Slider("Head tilt into strafes", c.StrafeTilt.Value, 0f, 6f, "0.0");
-            c.WallRunRoll.Value = Slider("Wall-run camera roll", c.WallRunRoll.Value, 0f, 15f, "0");
-            c.VholumeWallRunRoll.Value = GUILayout.Toggle(c.VholumeWallRunRoll.Value, " VHOLUME wall-run roll (6° toward the wall)");
-            c.VholumeFov.Value = GUILayout.Toggle(c.VholumeFov.Value, " VHOLUME FOV kicks (+5 fast, +10 slide, +15 wall run)");
             c.MoveSounds.Value = GUILayout.Toggle(c.MoveSounds.Value, " Slide, wall-run and vault sounds");
             c.LandingDip.Value = GUILayout.Toggle(c.LandingDip.Value, " Camera dip on hard landings");
 

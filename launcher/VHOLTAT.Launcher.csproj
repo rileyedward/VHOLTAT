@@ -10,7 +10,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>VHOLTAT.Launcher</RootNamespace>
     <AssemblyName>VHOLTAT-Launcher</AssemblyName>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Product>VHOLTAT Launcher</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

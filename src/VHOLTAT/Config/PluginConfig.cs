@@ -18,6 +18,14 @@ namespace VHOLTAT.Config
         Playtest2,
     }
 
+    internal enum CameraStyle
+    {
+        /// <summary>VHOLUME's camera: fixed horizontal FOV (100 by default), small FOV kicks, 6 degree wall-run roll toward the wall.</summary>
+        Vholume,
+        /// <summary>The 0.2 camera: STRAFTAT's FOV setting and sprint FOV plus a speed-based kick, 10 degree roll away from the wall.</summary>
+        StraftatWide,
+    }
+
     internal sealed class PluginConfig
     {
         public readonly ConfigEntry<MomentumPreset> Preset;
@@ -36,8 +44,8 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<float> FovLerp;
         public readonly ConfigEntry<float> WallRunRoll;
         public readonly ConfigEntry<float> StrafeTilt;
-        public readonly ConfigEntry<bool> VholumeWallRunRoll;
-        public readonly ConfigEntry<bool> VholumeFov;
+        public readonly ConfigEntry<CameraStyle> Camera;
+        public readonly ConfigEntry<float> VholumeFov;
         public readonly ConfigEntry<bool> MoveSounds;
         public readonly ConfigEntry<bool> LandingDip;
         public readonly ConfigEntry<bool> UseHostSettings;
@@ -71,12 +79,11 @@ namespace VHOLTAT.Config
             WallRunRoll = file.Bind("Camera", "WallRunRoll", 10f, "Camera roll (degrees) away from the wall while wall running.");
             StrafeTilt = file.Bind("Camera", "StrafeTilt", 3f,
                 "Head tilt (degrees) into the strafe direction, scaled by speed up to run speed (VHOLUME: 3). 0 = off.");
-            VholumeWallRunRoll = file.Bind("Camera", "VholumeWallRunRoll", false,
-                "Use VHOLUME's wall-run roll instead: 6 degrees toward the wall.");
-            MoveSounds = file.Bind("Camera", "MoveSounds", true, "Slide and wall-run sound loops and the vault sound.");
-            LandingDip = file.Bind("Camera", "LandingDip", true, "Camera dip on hard landings.");
-            VholumeFov = file.Bind("Camera", "VholumeFov", false,
-                "Use VHOLUME's FOV kicks instead of the speed-based FOV: +5 when running fast, +10 sliding, +15 wall running.");
+            Camera = file.Bind("Camera", "Style", CameraStyle.Vholume,
+                "Vholume = VHOLUME's camera (fixed horizontal FOV, small kicks, wall-run roll toward the wall). " +
+                "StraftatWide = the 0.2 camera (STRAFTAT's FOV setting, sprint widening and speed kick).");
+            VholumeFov = file.Bind("Camera", "VholumeFov", 100f,
+                "Horizontal FOV for the Vholume camera style (VHOLUME's default is 100). Converted for your screen shape.");
             UseHostSettings = file.Bind("Multiplayer", "UseHostSettings", true,
                 "In someone else's lobby, move with the host's VHOLTAT settings (preset and every number) so everyone " +
                 "plays by the same rules. Your own config comes back when you leave.");
