@@ -111,6 +111,7 @@ namespace VHOLTAT.Launcher
                 return target;
             }
             Exception last = null;
+            var mismatch = false;
             foreach (var url in pinned.Urls)
             {
                 try
@@ -118,15 +119,28 @@ namespace VHOLTAT.Launcher
                     await Download(url, target);
                     if (Sha256(target) == pinned.Sha256) return target;
                     File.Delete(target);
-                    last = new InvalidDataException($"{pinned.File} from {new Uri(url).Host} didn't match its expected checksum.");
+                    mismatch = true;
+                    log($"  {pinned.File} from {new Uri(url).Host} didn't match its expected checksum");
                 }
-                catch (Exception e) when (e is HttpRequestException || e is IOException || e is TaskCanceledException)
+                catch (Exception e) when (e is HttpRequestException || e is IOException || e is TaskCanceledException || e is WebException)
                 {
                     last = e;
-                    log($"  {new Uri(url).Host} failed ({e.GetBaseException().Message}), trying the next mirror");
+                    log($"  {new Uri(url).Host} failed ({e.GetBaseException().Message})");
                 }
             }
-            throw new InvalidOperationException($"Couldn't download {pinned.File}: {last?.GetBaseException().Message}");
+            var manual = $"or download it from {pinned.Urls[0]} and put it in {paths.Cache}";
+            if (mismatch)
+                throw new LauncherError($"The {pinned.File} download didn't match its expected checksum, so it wasn't used.",
+                    $"Press Install again to retry (a proxy or antivirus can damage downloads), {manual}.");
+            throw new LauncherError($"Couldn't download {pinned.File} ({Reason(last)}).",
+                $"Check your internet connection, firewall or proxy and press Install again, {manual}.", last);
+        }
+
+        private static string Reason(Exception e)
+        {
+            if (e is TaskCanceledException) return "the download timed out";
+            var message = e?.GetBaseException().Message ?? "unknown error";
+            return message.TrimEnd('.');
         }
 
         private async Task Download(string url, string target)
@@ -172,14 +186,14 @@ namespace VHOLTAT.Launcher
             return rest;
         }
 
-        /// <summary>"v0.1.0", "0.1.0" or "0.1" as a Version, or null.</summary>
+        /// <summary>"v0.1.0", "0.1.0" or "0.1" as a three-part Version (0.1 is 0.1.0), or null.</summary>
         public static Version ParseVersion(string text)
         {
             if (string.IsNullOrEmpty(text)) return null;
             text = text.Trim().TrimStart('v', 'V');
             var dash = text.IndexOfAny(new[] { '-', '+' });
             if (dash >= 0) text = text.Substring(0, dash);
-            return Version.TryParse(text, out var version) ? version : null;
+            return Version.TryParse(text, out var v) ? new Version(v.Major, v.Minor, Math.Max(v.Build, 0)) : null;
         }
     }
 }
