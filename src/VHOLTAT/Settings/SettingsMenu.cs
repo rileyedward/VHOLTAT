@@ -79,6 +79,8 @@ namespace VHOLTAT.Settings
                 c.WallRunRoll.Value = Slider("Wall-run camera roll", c.WallRunRoll.Value, 0f, 15f, "0");
             }
             c.StrafeTilt.Value = Slider("Head tilt into strafes", c.StrafeTilt.Value, 0f, 6f, "0.0");
+            c.SpeedBlur.Value = GUILayout.Toggle(c.SpeedBlur.Value, " Speed effect above run speed (VHOLUME speed blur)");
+            c.Speedometer.Value = GUILayout.Toggle(c.Speedometer.Value, " VHOLUME speedometer (u = cm/s)");
             c.MoveSounds.Value = GUILayout.Toggle(c.MoveSounds.Value, " Slide, wall-run and vault sounds");
             c.LandingDip.Value = GUILayout.Toggle(c.LandingDip.Value, " Camera dip on hard landings");
 

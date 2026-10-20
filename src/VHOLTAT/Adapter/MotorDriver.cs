@@ -190,6 +190,7 @@ namespace VHOLTAT.Adapter
             AfterMove(cc, flags);
             PlayEvents(fpc);
             Feedback.Apply(fpc, Motor, fallSpeed);
+            SpeedFx.Apply(fpc, Motor);
             return true;
         }
 
