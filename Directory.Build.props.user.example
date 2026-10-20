@@ -4,6 +4,6 @@
     <GameDir>C:\Program Files (x86)\Steam\steamapps\common\STRAFTAT</GameDir>
     <StraftatManaged>$(GameDir)\STRAFTAT_Data\Managed</StraftatManaged>
     <!-- BepInEx dev profile (its core\ is a copy of BepInEx 5.4.23.5). Debug builds deploy into its plugins\VHOLTAT\. -->
-    <DevProfile>C:\Users\Riley\source\_vholtat-dev</DevProfile>
+    <DevProfile>C:\path\to\vholtat-dev-profile</DevProfile>
   </PropertyGroup>
 </Project>

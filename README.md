@@ -66,6 +66,24 @@ with VHOLUME's exact jump. F10 marks a problem spot to `BepInEx/vholtat_spots.tx
 
 Every number is in `BepInEx/config/dev.riley.vholtat.cfg`; saved edits apply while the game runs.
 
+## Building from a fresh clone
+
+Requirements: Windows, the .NET SDK (8 or newer; the plugin targets netstandard2.1, the launcher net48), and an owned
+copy of STRAFTAT (its DLLs are referenced from your install and never committed).
+
+1. Copy `Directory.Build.props.user.example` to `Directory.Build.props.user` and set `GameDir` (your STRAFTAT folder)
+   and `DevProfile` (any empty folder you want to use as a BepInEx dev profile).
+2. Put BepInEx 5.4.23.5 (win x64) into the dev profile so it has `BepInEx\core\BepInEx.Preloader.dll`.
+3. `dotnet test tests/MovementCore.Tests` — movement core tests.
+4. `dotnet build` — Debug build of the plugin, copied into `<DevProfile>/BepInEx/plugins/VHOLTAT/`.
+5. `powershell -ExecutionPolicy Bypass -File tools/dev/launch.ps1` — starts STRAFTAT through Steam on the dev profile.
+6. `powershell -ExecutionPolicy Bypass -File tools/release/build-release.ps1` — Release build, tests, and the release
+   files in `dist/` (Thunderstore zip, manual zip, launcher, Windows download).
+
+## License
+
+Not chosen yet — the owner will pick one before publishing. Until then, all rights reserved.
+
 ## Development
 
 - `dotnet build` (Debug) deploys to the dev profile; `dotnet test tests/MovementCore.Tests` runs the core tests.

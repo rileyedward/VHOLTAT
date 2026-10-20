@@ -23,9 +23,9 @@ Snapshot 2026-10-19. Game: Unity 2021.3.45f2, Mono, FishNet 3.10.x, FishySteamwo
 
 Sources:
 
-- Decompiled with ilspycmd into `C:\Users\Riley\source\_decomp\straftat\Assembly-CSharp\` and `...\FishNet.Runtime\`. The paths below are relative to those folders.
+- Decompiled with ilspycmd into `../_decomp/straftat/Assembly-CSharp/` and `...\FishNet.Runtime\`. The paths below are relative to those folders.
 - Prefab values come from `data.unity3d`, read with UnityPy 1.25.4. The type trees are stripped, so the raw MonoBehaviour bytes were decoded by hand against the decompiled field order. Each decode used every byte exactly (FPC 3544/3544 bytes, NetworkTransform 152/152), which shows the field order was right.
-- Prior findings from `C:\Users\Riley\source\Straft4Dead\docs\systems-map.md` (S4D).
+- Prior findings from `../Straft4Dead/docs/systems-map.md` (S4D).
 
 Evidence tags: **[code]** from the decompiled C#, **[prefab]** from the decoded asset bytes, **[S4D]** from the earlier mod's notes and runtime logs, **[inferred]** where a conclusion is reasoned rather than shown.
 

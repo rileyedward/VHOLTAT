@@ -5,9 +5,8 @@
 SECS="${1:-150}"; MODE="${2:-parkour}"
 # Optional simulated network per copy, e.g. LAG="--vholtat-lag 60 --vholtat-loss 0.02" bash tools/dev/lan_test.sh
 LAG="${LAG:-}"
-PROFILE="/c/Users/Riley/source/_vholtat-dev"
+source "$(dirname "$0")/devpaths.sh"
 CLIENT="$PROFILE/client-instance"
-CFG="$PROFILE/BepInEx/config/dev.riley.vholtat.cfg"
 taskkill //IM STRAFTAT.exe //F >/dev/null 2>&1; sleep 3
 sed -i "s/^AutoTest = .*/AutoTest = true/; s/^TestMode = .*/TestMode = $MODE/" "$CFG"
 rm -f "$PROFILE/BepInEx/LogOutput.log" "$CLIENT/BepInEx/LogOutput.log"
