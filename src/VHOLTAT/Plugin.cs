@@ -19,7 +19,9 @@ namespace VHOLTAT
         {
             Logger = base.Logger;
             Settings = new PluginConfig(Config);
-            Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION} (made for STRAFTAT {Compat.BuiltFor}, running on game build {Application.version}, Unity {Application.unityVersion})");
+            Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION} (made for STRAFTAT {Compat.BuiltFor} build {Compat.BuiltForBuild}; running on build {Application.version}, Unity {Application.unityVersion})");
+            if (Application.version != Compat.BuiltForBuild)
+                Logger.LogWarning($"STRAFTAT has been updated since this VHOLTAT was made (build {Compat.BuiltForBuild} -> {Application.version}); checking compatibility.");
 
             // The BepInEx manager object doesn't survive STRAFTAT's startup, so hotkeys and the overlay live on our
             // own persistent object.

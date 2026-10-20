@@ -14,6 +14,8 @@ namespace VHOLTAT
     {
         /// <summary>The STRAFTAT build this VHOLTAT version was made and tested against (its lobby version string).</summary>
         public const string BuiltFor = "1.4.9f";
+        /// <summary>STRAFTAT's Unity build number (Application.version) at that time.</summary>
+        public const string BuiltForBuild = "0.0.3302";
 
         private static readonly string[] FpcMethods =
         {
@@ -75,7 +77,11 @@ namespace VHOLTAT
         private float until;
         private GUIStyle style;
 
-        private void OnEnable() => UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => until = Time.unscaledTime + 12f;
+        private void OnEnable()
+        {
+            until = Time.unscaledTime + 30f; // also on the first screens
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => until = Time.unscaledTime + 12f;
+        }
 
         private void OnGUI()
         {

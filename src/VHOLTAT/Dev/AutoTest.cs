@@ -170,6 +170,7 @@ namespace VHOLTAT.Dev
             t.position = start;
             cc.enabled = true;
             MotorDriver.SetActive(true);
+            MotorDriver.Motor.Reset(VHOLTAT.Movement.Vec3.Zero, true); // tests start from rest
             yield return Phase("pk-reset", 0.5f, Vector2.zero, false);
 
             var wall = Box("vholtat_test_wall", start + fwd * 12f + right * 1.0f, fwd, new Vector3(0.5f, 5f, 18f), feet, layer);
@@ -191,6 +192,7 @@ namespace VHOLTAT.Dev
             // Vault: a 0.9 m crate 6 m ahead of a run should be vaulted, keeping ~80 % of the run speed.
             cc.enabled = false; t.position = start; cc.enabled = true;
             MotorDriver.SetActive(true);
+            MotorDriver.Motor.Reset(VHOLTAT.Movement.Vec3.Zero, true); // tests start from rest
             yield return Phase("vt-reset", 0.3f, Vector2.zero, false);
             var crate = Box("vholtat_test_crate", start + fwd * 6f, fwd, new Vector3(2f, 0.9f, 1f), feet, layer);
             yield return Phase("vt-run", 1.2f, Vector2.up, false);
@@ -199,6 +201,7 @@ namespace VHOLTAT.Dev
             // Ladder: a 4 m panel on STRAFTAT's ladder layer straight ahead; holding forward should climb at ladder speed.
             cc.enabled = false; t.position = start; cc.enabled = true;
             MotorDriver.SetActive(true);
+            MotorDriver.Motor.Reset(VHOLTAT.Movement.Vec3.Zero, true); // tests start from rest
             yield return Phase("ld-reset", 0.3f, Vector2.zero, false);
             var ladderMask = HarmonyLib.Traverse.Create(fpc).Field("ladderLayer").GetValue<LayerMask>();
             var ladder = Box("vholtat_test_ladder", start + fwd * 1.2f, fwd, new Vector3(1.5f, 4f, 0.3f), feet, FirstLayer(ladderMask.value));
@@ -256,6 +259,7 @@ namespace VHOLTAT.Dev
                 }
                 cc.enabled = false; t.position = start; cc.enabled = true;
                 MotorDriver.SetActive(true);
+            MotorDriver.Motor.Reset(VHOLTAT.Movement.Vec3.Zero, true); // tests start from rest
                 MotorDriver.ScriptMove = Vector2.zero;
                 yield return new WaitForSeconds(0.3f);
                 float a = h * 45f * Mathf.Deg2Rad;
