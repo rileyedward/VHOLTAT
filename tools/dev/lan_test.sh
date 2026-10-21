@@ -13,7 +13,7 @@ rm -f "$PROFILE/BepInEx/LogOutput.log" "$CLIENT/BepInEx/LogOutput.log"
 "/c/Program Files (x86)/Steam/steam.exe" -applaunch 2386720 --doorstop-enabled true \
   --doorstop-target-assembly "$(cygpath -w "$PROFILE")\BepInEx\core\BepInEx.Preloader.dll" --vholtat-lan host $LAG >/dev/null 2>&1 &
 sleep 35
-(cd "$CLIENT" && ./STRAFTAT.exe --vholtat-lan client $LAG >/dev/null 2>&1 &)
+(cd "$CLIENT" && ./STRAFTAT.exe --vholtat-lan client $LAG -screen-fullscreen 0 -screen-width 1280 -screen-height 720 >/dev/null 2>&1 &)
 sleep "$SECS"
 sed -i 's/^AutoTest = true/AutoTest = false/; s/^TestMode = .*/TestMode = basic/' "$CFG"
 echo "== host"; grep -aE "\[(lan|test|match)]|Exception" "$PROFILE/BepInEx/LogOutput.log" | cut -c1-200 | grep -vE "\[test\] (pk|wr|kb)" | tail -60

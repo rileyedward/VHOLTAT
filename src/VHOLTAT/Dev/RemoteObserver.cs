@@ -12,6 +12,34 @@ namespace VHOLTAT.Dev
     /// </summary>
     internal static class RemoteObserver
     {
+        private static readonly Vector3[] Dirs =
+        {
+            new Vector3(1f, 0f, -0.4f), new Vector3(-1f, 0f, -0.4f), new Vector3(0f, 0f, -1f), new Vector3(0.7f, 0f, 0.7f),
+            new Vector3(-0.7f, 0f, 0.7f), new Vector3(0f, 0f, 1f),
+        };
+
+        /// <summary>A camera spot around the target with line of sight: the first direction that is clear for the
+        /// longest distance (up to 4.5 m), pulled in short of any wall.</summary>
+        private static Vector3 ClearView(Transform target)
+        {
+            Vector3 eye = target.position + Vector3.up * 1.2f;
+            Vector3 best = eye + Vector3.up * 2f;
+            float bestDist = 0f;
+            foreach (var d in Dirs)
+            {
+                Vector3 dir = (target.rotation * d).normalized + Vector3.up * 0.25f;
+                float dist = 3.2f;
+                if (Physics.SphereCast(eye, 0.3f, dir.normalized, out RaycastHit hit, dist, ~0, QueryTriggerInteraction.Ignore))
+                    dist = Mathf.Max(0.8f, hit.distance - 0.4f);
+                if (dist > bestDist + 0.5f)
+                {
+                    bestDist = dist;
+                    best = eye + dir.normalized * dist;
+                }
+            }
+            return best;
+        }
+
         public static IEnumerator Watch()
         {
             Transform remote = null;
@@ -35,7 +63,11 @@ namespace VHOLTAT.Dev
 
             Vector3 last = remote.position;
             float windowStart = Time.time, sum = 0f, sumSq = 0f, maxStep = 0f;
-            int frames = 0, shots = 0;
+            int frames = 0;
+            Camera spectator = null;
+            var shotStates = new System.Collections.Generic.HashSet<string>();
+            string poseKey = null;
+            float poseSince = -1f;
             for (float t = 0f; t < 120f; t += Time.deltaTime)
             {
                 yield return null;
@@ -68,10 +100,38 @@ namespace VHOLTAT.Dev
                     Plugin.Logger.LogInfo($"[lan] remote t={t:0.0} speed={mean:0.0} sd={sd:0.0} peak={maxStep:0.0} y={p.y:0.00}{flags} hostSettings={Plugin.Settings.RemoteActive}");
                     windowStart = Time.time; sum = sumSq = maxStep = 0f; frames = 0;
                 }
-                if (shots < 3 && t > 20f + shots * 8f)
+                // Keep STRAFTAT's info popup ("mods detected") out of the shots.
+                var popup = HarmonyLib.Traverse.Create(PauseManager.Instance).Field("infoPopup").GetValue<GameObject>();
+                if (popup != null && popup.activeSelf) popup.SetActive(false);
+
+                // Spectator camera beside the host so their model (and its pose) is in view.
+                if (spectator == null)
                 {
-                    ScreenCapture.CaptureScreenshot(Path.Combine(Paths.BepInExRootPath, $"vholtat_lan_client_{shots}.png"));
-                    shots++;
+                    var go = new GameObject("vholtat_spectator");
+                    spectator = go.AddComponent<Camera>();
+                    spectator.depth = 100f;
+                    spectator.fieldOfView = 45f;
+                }
+                Vector3 want = ClearView(remote);
+                spectator.transform.position = Vector3.Lerp(spectator.transform.position, want, 1f - Mathf.Exp(-8f * Time.deltaTime));
+                spectator.transform.LookAt(remote.position + Vector3.up * 1.0f);
+
+                // Screenshot each pose state once, a moment after it starts.
+                var nob = remote.GetComponent<FishNet.Object.NetworkObject>();
+                if (nob != null && Net.PoseSync.States.TryGetValue(nob.ObjectId, out var pose))
+                {
+                    string key = pose.Key.ToString();
+                    if (pose.Key != Movement.MoveState.Ground && pose.Key != Movement.MoveState.Air && !shotStates.Contains(key))
+                    {
+                        if (poseSince < 0f || poseKey != key) { poseKey = key; poseSince = t; }
+                        else if (t - poseSince > 0.15f)
+                        {
+                            shotStates.Add(key);
+                            ScreenCapture.CaptureScreenshot(Path.Combine(Paths.BepInExRootPath, $"vholtat_pose_{key}.png"));
+                            Plugin.Logger.LogInfo($"[lan] pose screenshot: {key}");
+                        }
+                    }
+                    else if (poseKey != key) { poseKey = key; poseSince = -1f; }
                 }
             }
             Plugin.Logger.LogInfo("[lan] observer: done");

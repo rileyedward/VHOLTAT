@@ -53,6 +53,7 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<bool> LandingDip;
         public readonly ConfigEntry<bool> UseHostSettings;
         public readonly ConfigEntry<int> RemoteInterpolationTicks;
+        public readonly ConfigEntry<bool> RemotePoses;
         public readonly ConfigEntry<bool> DevAutoTest;
         public readonly ConfigEntry<string> DevTestMap;
         public readonly ConfigEntry<string> DevTestMode;
@@ -96,6 +97,8 @@ namespace VHOLTAT.Config
             UseHostSettings = file.Bind("Multiplayer", "UseHostSettings", true,
                 "In someone else's lobby, move with the host's VHOLTAT settings (preset and every number) so everyone " +
                 "plays by the same rules. Your own config comes back when you leave.");
+            RemotePoses = file.Bind("Multiplayer", "RemotePoses", true,
+                "Pose other VHOLTAT players' models on your screen: lean on wall runs and climbs, tuck on vaults and mantles.");
             RemoteInterpolationTicks = file.Bind("Multiplayer", "RemoteInterpolationTicks", 8,
                 "Position buffer (network ticks, 60 per second) used to draw other players on your screen. Higher = smoother " +
                 "at high speed on bad connections, slightly more delay. STRAFTAT's default is 5; 0 leaves it alone.");

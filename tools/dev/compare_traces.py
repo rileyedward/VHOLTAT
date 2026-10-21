@@ -78,7 +78,7 @@ def events(trace):
 
 
 def windows(traces):
-    lo, hi = int(WINDOW[0] / DT), int(WINDOW[1] / DT)
+    lo, hi = int(round(WINDOW[0] / DT)), int(round(WINDOW[1] / DT))
     out = {}
     for tr in traces:
         for kind, i in events(tr):
@@ -138,6 +138,17 @@ def main():
         vy = [s for s in vy if s[1]]
         body.append(f'<h3>{html.escape(kind)}</h3><div>{svg(kind + " - horizontal speed (m/s)", sp, "m/s")} '
                     f'{svg(kind + " - vertical speed (m/s)", vy, "m/s")}</div>')
+    # Text summary: medians at fixed offsets around each event.
+    marks = [-0.2, 0.0, 0.1, 0.2, 0.4, 0.7, 1.0, 1.5]
+    idx = [int(round((m - WINDOW[0]) / DT)) for m in marks]
+    print('event'.ljust(16) + 'source'.ljust(9) + ' n  ' + ''.join(f'{m:>+7.1f}s' for m in marks))
+    for kind in kinds:
+        for name, curves in (('VHOLUME', wh.get(kind, [])), ('VHOLTAT', wv.get(kind, []))):
+            if not curves:
+                continue
+            hs, vs = median_curve([c[0] for c in curves]), median_curve([c[1] for c in curves])
+            print(kind.ljust(16) + name.ljust(9) + f'{len(curves):3d} h ' + ''.join(f'{hs[i]:8.2f}' for i in idx))
+            print(''.ljust(16) + ''.ljust(9) + '    vy' + ''.join(f'{vs[i]:8.2f}' for i in idx))
     open(a.out, 'w', encoding='utf-8').write(
         '<html><body style="background:#0b0e13;color:#ddd;font-family:sans-serif">' + ''.join(body) + '</body></html>')
     print(f'wrote {a.out}: {len(kinds)} event types, {len(vt)} VHOLTAT recordings, {len(vh)} VHOLUME replays')

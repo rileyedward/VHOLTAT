@@ -62,6 +62,8 @@ namespace VHOLTAT
             gameObject.AddComponent<Net.SettingsSync>();
             gameObject.AddComponent<Net.VersionCheck>();
             gameObject.AddComponent<Net.RemoteSmoothing>();
+            gameObject.AddComponent<Net.PoseSync>();
+            gameObject.AddComponent<Adapter.RemotePoses>();
             gameObject.AddComponent<Settings.SettingsMenu>();
         }
 
