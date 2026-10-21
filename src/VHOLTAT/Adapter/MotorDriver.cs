@@ -19,6 +19,8 @@ namespace VHOLTAT.Adapter
     {
         public static MovementMotor Motor;
         public static MovementSensors Sensors;
+        /// <summary>The input the motor saw this frame (for the recorder).</summary>
+        public static MovementInput LastInput;
         public static FirstPersonController Current;
         public static bool Active;
 
@@ -163,6 +165,7 @@ namespace VHOLTAT.Adapter
             jumpQueued = false;
             lastCrouch = crouch;
 
+            LastInput = input;
             SensorProbe.Probe(fpc, cc, fwd, fpc.landLayer.value, ref Sensors);
             if (OnLadder(fpc))
             {

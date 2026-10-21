@@ -38,6 +38,7 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<bool> DevKeys;
         public readonly ConfigEntry<bool> MarkSpots;
         public readonly ConfigEntry<KeyCode> MarkSpotKey;
+        public readonly ConfigEntry<KeyCode> RecordKey;
         public readonly ConfigEntry<bool> VanillaVault;
         public readonly ConfigEntry<float> FovSpeedBonus;
         public readonly ConfigEntry<float> FovFullSpeed;
@@ -79,6 +80,12 @@ namespace VHOLTAT.Config
             FovFullSpeed = file.Bind("Camera", "FovFullSpeed", 26f, "Speed (m/s) where the FOV bonus is complete.");
             FovLerp = file.Bind("Camera", "FovLerp", 6f, "How fast the FOV follows speed.");
             WallRunRoll = file.Bind("Camera", "WallRunRoll", 10f, "Camera roll (degrees) away from the wall while wall running.");
+            MoveSounds = file.Bind("Camera", "MoveSounds", true, "Slide and wall-run sound loops and the vault sound.");
+            LandingDip = file.Bind("Camera", "LandingDip", true, "Camera dip on hard landings.");
+            SpeedBlur = file.Bind("Camera", "SpeedBlur", false,
+                "VHOLUME-style speed effect: a subtle colour fringe that grows above run speed.");
+            Speedometer = file.Bind("Camera", "Speedometer", false,
+                "VHOLUME-style speed readout in the top-right corner, in VHOLUME units (u = cm/s, run = 1300u).");
             StrafeTilt = file.Bind("Camera", "StrafeTilt", 3f,
                 "Head tilt (degrees) into the strafe direction, scaled by speed up to run speed (VHOLUME: 3). 0 = off.");
             Camera = file.Bind("Camera", "Style", CameraStyle.Vholume,
@@ -103,6 +110,8 @@ namespace VHOLTAT.Config
                 "Enables the developer comparison keys: PresetKey (F8, momentum preset) and JumpStyleKey (F9, VHOLUME's exact jump).");
             MarkSpots = file.Bind("Debug", "MarkSpots", false,
                 "Lets MarkSpotKey write the current spot (map, position, state, nearby geometry) to BepInEx/vholtat_spots.txt for bug reports.");
+            RecordKey = file.Bind("Debug", "RecordKey", KeyCode.F11,
+                "Starts/stops a movement recording (BepInEx/recordings/*.csv) when DevKeys or MarkSpots is on.");
             MarkSpotKey = file.Bind("Debug", "MarkSpotKey", KeyCode.F10, "Marks the current spot when MarkSpots is on.");
 
             foreach (var field in typeof(MovementSettings).GetFields(BindingFlags.Public | BindingFlags.Instance))
@@ -115,6 +124,10 @@ namespace VHOLTAT.Config
                 movementEntries.Add(new KeyValuePair<FieldInfo, ConfigEntry<float>>(field, entry));
             }
             Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
+            foreach (var f in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+                if (f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigEntry<>) && f.GetValue(this) == null)
+                    throw new System.InvalidOperationException("config entry not bound: " + f.Name);
+
             file.SettingChanged += (_, __) => Apply();
 
             // BepInEx only reads the file at startup; watch it so saved edits apply while the game runs.

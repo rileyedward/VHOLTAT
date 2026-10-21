@@ -117,6 +117,7 @@ namespace VHOLTAT.Dev
                 yield break;
             }
 
+            Recorder.StartForTest();
             MotorDriver.ScriptActive = true;
             PerfProbe.Reset();
             PerfProbe.On = true;
@@ -133,6 +134,7 @@ namespace VHOLTAT.Dev
             yield return Phase("strafe", 0.6f, Vector2.right, false);
             yield return Phase("stop", 0.6f, Vector2.zero, false);
             MotorDriver.ScriptActive = false;
+            Recorder.StopForTest();
             PerfProbe.On = false;
             Plugin.Logger.LogInfo(PerfProbe.Report());
             Plugin.Settings.ShowOverlay.Value = false;
@@ -156,6 +158,7 @@ namespace VHOLTAT.Dev
             var cc = fpc.characterController;
             float feet = cc.bounds.min.y;
 
+            Recorder.StartForTest();
             var ledge = Box("vholtat_test_ledge", start + fwd * 7f, fwd, new Vector3(4f, 2.0f, 2f), feet, layer);
             MotorDriver.ScriptActive = true;
             yield return Phase("pk-stand", 0.3f, Vector2.zero, false);
@@ -223,6 +226,7 @@ namespace VHOLTAT.Dev
             Destroy(pad.gameObject);
 
             MotorDriver.ScriptActive = false;
+            Recorder.StopForTest();
             Plugin.Logger.LogInfo("[test] done");
         }
 
