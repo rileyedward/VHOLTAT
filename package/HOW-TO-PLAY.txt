@@ -30,11 +30,11 @@ MULTIPLAYER
 
 MOVES
 - Hold crouch while running to slide; jump out of a slide to keep its speed.
-- Jump right as you land to keep your speed (bunny hop).
+- Jump right as you land to keep your speed and build more (bunny hop).
 - Jump next to a wall while holding forward to wall run; jump again to wall jump.
   Bounce wall to wall to build speed.
-- Run into waist-high cover to vault it; hold forward into a wall in the air to climb it
-  and mantle onto the top.
+- Jump at a ledge while holding forward to vault onto it; hold forward into a wall in the air
+  to climb it.
 
 KEYS
   F6  switch between VHOLTAT and vanilla movement

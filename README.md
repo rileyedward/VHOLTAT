@@ -52,17 +52,19 @@ modded players in their own matchmaking pool. VHOLTAT adds:
 | F6 | VHOLTAT / vanilla movement |
 | F7 | overlay: state, speed, boost, walls (off by default) |
 
-Developer keys (off unless `[Debug] DevKeys = true`): F8 momentum preset (Vholume / Playtest2), F9 compare the jump
-with VHOLUME's exact jump. F10 marks a problem spot to `BepInEx/vholtat_spots.txt` when `[Debug] MarkSpots = true`.
+Developer keys (off unless `[Debug] DevKeys = true`): F8 cycles the movement model (VHOLUME / 0.3 / 0.3 Playtest2),
+F9 compares the 0.3 jump with VHOLUME's exact jump, F11 records movement to `BepInEx/recordings/`. Shift+F12 opens the
+combat tuning panel (speed limit, boost and wall speeds, how other players are drawn). F10 marks a problem spot to `BepInEx/vholtat_spots.txt` when `[Debug] MarkSpots = true`.
 
 ## Moves
 
 - Hold crouch while running to slide; jump out of a slide to keep its speed.
-- Jump within 0.15 s of landing to keep your speed (bunny hop).
+- Jump within 0.15 s of landing to keep your speed and gain a fifth of the speed above run speed (bunny hop).
 - Jump next to a wall while holding forward to wall run; jump again to wall jump. Wall to wall builds speed.
-- Run into waist-high cover to vault it.
+- Jump at a ledge or cover while holding forward to vault onto it (vaults happen in the air, as in VHOLUME;
+  `[Mantle] VanillaVault = true` adds STRAFTAT's ground vault back).
 - Hold forward into a wall in the air to climb it (strafe to turn it into a wall run); reach a ledge to mantle onto it.
-- Speed above each move's base is carried: never lost in the air, fades slowly on the ground.
+- Extra speed from hops is carried and fades slowly (slower still on walls).
 
 Every number is in `BepInEx/config/dev.riley.vholtat.cfg`; saved edits apply while the game runs.
 

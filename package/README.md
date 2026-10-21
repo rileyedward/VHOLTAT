@@ -16,10 +16,10 @@ knockback are unchanged.
 ## Moves
 
 - Hold crouch while running to slide; jump out of a slide to keep its speed.
-- Jump right as you land to keep your speed (bunny hop).
+- Jump right as you land to keep your speed and build more (bunny hop).
 - Jump next to a wall while holding forward to wall run; jump again to wall jump. Wall to wall builds speed.
-- Run into waist-high cover to vault it; hold forward into a wall in the air to climb it and mantle onto the top.
-- Speed above each move's base is carried: never lost in the air, fades slowly on the ground.
+- Jump at a ledge while holding forward to vault onto it; hold forward into a wall in the air to climb it.
+- Extra speed from hops is carried and fades slowly (slower still on walls).
 
 ## Keys
 

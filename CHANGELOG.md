@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0
+
+- New default movement model, rebuilt from VHOLUME's own rules (docs/MOVEMENT_FORMULAS.md): run 13 m/s, jump 8 up,
+  gravity 21.56, Unreal-style acceleration and braking; bunny hops add 20 % of the speed above run speed within
+  0.15 s of landing, boost fades 0.8/s (0.1/s on walls); VHOLUME's slide timer; wall runs at 16.5 with VHOLUME's
+  rise-then-sink curve and no time limit; climbs at 4 up then curving down; wall jumps toward where you look at
+  max(14, wall-run speed); coyote jump 0.33 s; jump buffer 0.1 s with perfect-hop grading.
+- Vaults happen in the air, as in VHOLUME (a column check just ahead of you, no wall needed). Running into cover no
+  longer hops you over it; `[Mantle] VanillaVault = true` adds STRAFTAT's ground vault back.
+- The 0.3 movement stays available: `[General] Model = Locked03`. The host's model and numbers apply to the lobby.
+- Hidden combat tuning panel (Shift+F12): speed limit (off), hop boost, wall and slide speeds, other players'
+  smoothing and poses. Fast targets are unchanged by default.
+- Other players running VHOLTAT lean on wall runs, lean into climbs and tuck on vaults on your screen; their hitboxes
+  follow the pose.
+- Fixed: the move sounds, landing dip, speedometer and speed effect settings were missing from the config in 0.3.x
+  (sounds and the landing dip silently didn't play).
+- Movement recorder (F11 with DevKeys) for playtests.
+
 ## 0.3.1
 
 - Optional VHOLUME-style speedometer (u = cm/s) and speed effect, both off by default (settings window).
