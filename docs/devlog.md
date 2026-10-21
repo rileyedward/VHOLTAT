@@ -72,3 +72,14 @@
   camera stays as "STRAFTAT wide". Riley: "much much better". Camera and movement are locked again.
 - 0.3.1: optional speedometer / speed effect (off), startup compatibility guard (Compat.cs, --vholtat-compat-test to
   simulate a game update), launcher polish, docs (Steam Deck note).
+
+## 2026-10-21 — VHOLUME model, combat panel (0.4.0)
+
+- VHOLUME's movement script decoded into docs/MOVEMENT_FORMULAS.md (plain English and numbers). VholumeMotor built
+  from it and made the default; the 0.3 motor stays as Model = Locked03 (shared MotorBase, live switch).
+- 17 unit tests pin the model to the spec. Event-aligned trace comparison against 35 of Riley's ghosts: run start,
+  jump arc, wall-run entry and climb start line up.
+- Fixed the 0.3.x unbound config entries (sounds, landing dip, speedometer, speed effect).
+- Remote poses (lean, tuck) on other screens; hitboxes are on the model's bones so they follow. Two-copy aim test:
+  the gun's hit check lands on drawn torso and head in every movement state.
+- Hidden Shift+F12 combat panel. Two-copy match test not rerun for 0.4.0 yet; Riley's feel check pending.
