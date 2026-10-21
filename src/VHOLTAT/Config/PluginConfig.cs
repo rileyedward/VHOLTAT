@@ -18,6 +18,14 @@ namespace VHOLTAT.Config
         Playtest2,
     }
 
+    internal enum MovementModel
+    {
+        /// <summary>VHOLUME's own movement rules, decoded from the game (docs/MOVEMENT_FORMULAS.md). Default.</summary>
+        Vholume,
+        /// <summary>The 0.3 tuning (locked feel from the playtests); Preset picks its momentum rules.</summary>
+        Locked03,
+    }
+
     internal enum CameraStyle
     {
         /// <summary>VHOLUME's camera: fixed horizontal FOV (100 by default), small FOV kicks, 6 degree wall-run roll toward the wall.</summary>
@@ -28,6 +36,7 @@ namespace VHOLTAT.Config
 
     internal sealed class PluginConfig
     {
+        public readonly ConfigEntry<MovementModel> Model;
         public readonly ConfigEntry<MomentumPreset> Preset;
         public readonly ConfigEntry<bool> Enabled;
         public readonly ConfigEntry<KeyCode> ToggleKey;
@@ -60,18 +69,28 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<string> DevFakeVersion;
 
         public readonly MovementSettings Movement = new MovementSettings();
+        public readonly VholumeSettings Vholume = new VholumeSettings();
+
+        /// <summary>The model in use: the local Model entry, or the host's while their settings apply.</summary>
+        public MovementModel ActiveModel { get; private set; }
 
         private readonly List<KeyValuePair<FieldInfo, ConfigEntry<float>>> movementEntries =
+            new List<KeyValuePair<FieldInfo, ConfigEntry<float>>>();
+        private readonly List<KeyValuePair<FieldInfo, ConfigEntry<float>>> vholumeEntries =
             new List<KeyValuePair<FieldInfo, ConfigEntry<float>>>();
 
         public PluginConfig(ConfigFile file)
         {
             Enabled = file.Bind("General", "Enabled", true,
                 "Use VHOLTAT movement for your own player. Toggle in game with ToggleKey.");
+            Model = file.Bind("General", "Model", MovementModel.Vholume,
+                "Vholume = VHOLUME's own movement rules (numbers in [Vholume]). Locked03 = the 0.3 tuning " +
+                "(numbers in the other sections, momentum rules from Preset).");
             Preset = file.Bind("General", "Preset", MomentumPreset.Vholume,
-                "Momentum rules. Vholume = VHOLUME's carry rules. Playtest2 = skill-fed boost from playtest 2 " +
+                "Momentum rules for the Locked03 model. Vholume = VHOLUME's carry rules. Playtest2 = skill-fed boost from playtest 2 " +
                 "(its numbers are in [Preset.Playtest2]). Switch live to compare.");
-            PresetKey = file.Bind("General", "PresetKey", KeyCode.F8, "Cycles the momentum preset live.");
+            PresetKey = file.Bind("General", "PresetKey", KeyCode.F8,
+                "Cycles live (needs DevKeys): Vholume model, Locked03 with the Vholume preset, Locked03 with the Playtest2 preset.");
             JumpStyleKey = file.Bind("General", "JumpStyleKey", KeyCode.F9,
                 "Switches live between the snappier jump (JumpRiseGravity) and VHOLUME's exact jump, for comparison.");
             ToggleKey = file.Bind("General", "ToggleKey", KeyCode.F6, "Switches between vanilla and VHOLTAT movement live.");
@@ -126,7 +145,17 @@ namespace VHOLTAT.Config
                 field.SetValue(Movement, entry.Value);
                 movementEntries.Add(new KeyValuePair<FieldInfo, ConfigEntry<float>>(field, entry));
             }
+            foreach (var field in typeof(VholumeSettings).GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (field.FieldType != typeof(float))
+                    continue;
+                var entry = file.Bind("Vholume", field.Name, (float)field.GetValue(Vholume),
+                    "Vholume model. Metres / seconds. Default from docs/MOVEMENT_FORMULAS.md.");
+                field.SetValue(Vholume, entry.Value);
+                vholumeEntries.Add(new KeyValuePair<FieldInfo, ConfigEntry<float>>(field, entry));
+            }
             Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
+            ActiveModel = Model.Value;
             foreach (var f in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
                 if (f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigEntry<>) && f.GetValue(this) == null)
                     throw new System.InvalidOperationException("config entry not bound: " + f.Name);
@@ -185,21 +214,29 @@ namespace VHOLTAT.Config
             var defaults = new MovementSettings();
             foreach (var pair in movementEntries)
                 pair.Value.Value = (float)pair.Key.GetValue(defaults);
+            var vdefaults = new VholumeSettings();
+            foreach (var pair in vholumeEntries)
+                pair.Value.Value = (float)pair.Key.GetValue(vdefaults);
             Preset.Value = MomentumPreset.Vholume;
+            Model.Value = MovementModel.Vholume;
             Apply();
         }
 
         /// <summary>True while the host's settings are applied over the local config.</summary>
         public bool RemoteActive { get; private set; }
 
-        public int MovementFieldCount => movementEntries.Count;
+        public int MovementFieldCount => movementEntries.Count + vholumeEntries.Count;
 
-        /// <summary>Writes the local preset + movement values (config order) for the host's broadcast.</summary>
+        /// <summary>Writes the local model, preset and movement values (config order) for the host's broadcast.</summary>
         public void WriteLocal(System.IO.BinaryWriter w)
         {
             w.Write((byte)Preset.Value);
+            w.Write((byte)Model.Value);
             w.Write(movementEntries.Count);
+            w.Write(vholumeEntries.Count);
             foreach (var pair in movementEntries)
+                w.Write(pair.Value.Value);
+            foreach (var pair in vholumeEntries)
                 w.Write(pair.Value.Value);
         }
 
@@ -207,12 +244,17 @@ namespace VHOLTAT.Config
         public bool ApplyRemote(System.IO.BinaryReader r)
         {
             var preset = (MomentumPreset)r.ReadByte();
+            var model = (MovementModel)r.ReadByte();
             int n = r.ReadInt32();
-            if (n != movementEntries.Count)
+            int nv = r.ReadInt32();
+            if (n != movementEntries.Count || nv != vholumeEntries.Count)
                 return false;
             foreach (var pair in movementEntries)
                 pair.Key.SetValue(Movement, r.ReadSingle());
+            foreach (var pair in vholumeEntries)
+                pair.Key.SetValue(Vholume, r.ReadSingle());
             Movement.Playtest2Model = preset == MomentumPreset.Playtest2;
+            ActiveModel = model;
             RemoteActive = true;
             return true;
         }
@@ -232,7 +274,10 @@ namespace VHOLTAT.Config
                 return;
             foreach (var pair in movementEntries)
                 pair.Key.SetValue(Movement, pair.Value.Value);
+            foreach (var pair in vholumeEntries)
+                pair.Key.SetValue(Vholume, pair.Value.Value);
             Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
+            ActiveModel = Model.Value;
         }
 
         private static string SectionFor(string name)

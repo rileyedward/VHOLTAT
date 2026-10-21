@@ -71,7 +71,7 @@ namespace VHOLTAT.Dev
             path = Path.Combine(dir, $"vholtat_{SceneManager.GetActiveScene().name}_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
             writer = new StreamWriter(path, false, new UTF8Encoding(false), 1 << 16);
             writer.WriteLine("# VHOLTAT " + MyPluginInfo.PLUGIN_VERSION + " recording, STRAFTAT build " + Application.version +
-                             ", preset " + Plugin.Settings.Preset.Value + ", camera " + Plugin.Settings.Camera.Value);
+                             ", model " + (MotorDriver.Motor != null ? MotorDriver.Motor.ModelName : "-") + ", camera " + Plugin.Settings.Camera.Value);
             writer.WriteLine(Header);
             t0 = Time.time;
             rows = 0;

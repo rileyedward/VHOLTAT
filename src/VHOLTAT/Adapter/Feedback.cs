@@ -34,7 +34,7 @@ namespace VHOLTAT.Adapter
         private static bool loopStopped = true;
 
         /// <param name="impactSpeed">Downward speed just before this frame's landing (m/s, positive).</param>
-        public static void Apply(FirstPersonController fpc, MovementMotor m, float impactSpeed)
+        public static void Apply(FirstPersonController fpc, MotorBase m, float impactSpeed)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace VHOLTAT.Adapter
             }
         }
 
-        private static void Audio(FirstPersonController fpc, MovementMotor m)
+        private static void Audio(FirstPersonController fpc, MotorBase m)
         {
             var e = m.Events;
             var slide = SlideAudio(fpc);
@@ -85,7 +85,7 @@ namespace VHOLTAT.Adapter
         }
 
         /// <summary>Vanilla's land bob: dip the camera pivot on hard landings, then ease it back.</summary>
-        private static void LandDip(FirstPersonController fpc, MovementMotor m, float impactSpeed)
+        private static void LandDip(FirstPersonController fpc, MotorBase m, float impactSpeed)
         {
             var pivot = LandBobPivot(fpc);
             if (pivot == null)

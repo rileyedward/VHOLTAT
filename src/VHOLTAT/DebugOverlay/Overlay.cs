@@ -28,14 +28,13 @@ namespace VHOLTAT.DebugOverlay
             Rebuild(m);
         }
 
-        private void Rebuild(MovementMotor m)
+        private void Rebuild(MotorBase m)
         {
             sb.Length = 0;
             sb.Append("VHOLTAT  [").Append(MotorDriver.Active ? "ON" : "vanilla").Append("]  ")
-              .Append(Plugin.Settings.ToggleKey.Value).Append(" toggles   preset ")
-              .Append(Plugin.Settings.RemoteActive
-                  ? (Plugin.Settings.Movement.Playtest2Model ? "Playtest2 (host)" : "Vholume (host)")
-                  : Plugin.Settings.Preset.Value.ToString())
+              .Append(Plugin.Settings.ToggleKey.Value).Append(" toggles   model ")
+              .Append(m != null ? m.ModelName : "-")
+              .Append(Plugin.Settings.RemoteActive ? " (host)" : "")
               .Append('\n');
             var fpc = MotorDriver.Current;
             if (!MotorDriver.Active || m == null || fpc == null)
@@ -58,7 +57,7 @@ namespace VHOLTAT.DebugOverlay
               .Append("  F ").Append(s.WallFront ? "#" : "-").Append("  ledge ").Append(s.LedgeFound ? "#" : "-")
               .Append("  ceil ").Append(s.CeilingBlocked ? "#" : "-").Append('\n');
             sb.Append("weapon speed x").Append(fpc.movementFactor.ToString("0.00"))
-              .Append("   jump ").Append(m.S.ExactVholumeJump ? "VHOLUME exact" : "snappy");
+              .Append("   boost ").Append(m.Boost.ToString("0.0"));
             text = sb.ToString();
         }
 

@@ -7,23 +7,13 @@ namespace VHOLTAT.Movement
     /// calls <see cref="Step"/>, then moves the character by <see cref="Velocity"/> * dt.
     /// No allocations after construction.
     /// </summary>
-    public sealed class MovementMotor
+    public sealed class MovementMotor : MotorBase
     {
         public readonly MovementSettings S;
 
-        public Vec3 Velocity;
-        public MoveState State { get; private set; } = MoveState.Air;
-        public MoveEvents Events { get; private set; }
-        public float StateTime { get; private set; }
-        /// <summary>Normal of the wall being run on or climbed (valid in those states).</summary>
-        public Vec3 WallNormal { get; private set; }
-
-        /// <summary>Momentum on top of each state's base speed (m/s). See MovementSettings Boost*.</summary>
-        public float Boost { get; private set; }
-
-        public float HorizontalSpeed => Velocity.Flat.Magnitude;
-        public bool IsGroundState => State == MoveState.Ground || State == MoveState.Crouch || State == MoveState.Slide;
-        public bool WantsCrouchedCapsule => State == MoveState.Crouch || State == MoveState.Slide;
+        public override float RunSpeed => S.RunSpeed;
+        public override float SlideStartSpeed => S.SlideMinStartSpeed;
+        public override string ModelName => S.Playtest2Model ? "0.3 locked (Playtest2)" : "0.3 locked";
 
         private float coyoteTimer;
         private float jumpBufferTimer;
@@ -53,7 +43,7 @@ namespace VHOLTAT.Movement
         }
 
         /// <summary>Clears all state (respawn, teleport, toggling the mod on).</summary>
-        public void Reset(Vec3 velocity, bool grounded)
+        public override void Reset(Vec3 velocity, bool grounded)
         {
             Velocity = velocity;
             Boost = 0f;
@@ -65,7 +55,7 @@ namespace VHOLTAT.Movement
         }
 
         /// <summary>External velocity change (explosions, knockback, jump pads).</summary>
-        public void AddImpulse(Vec3 deltaV)
+        public override void AddImpulse(Vec3 deltaV)
         {
             Velocity += deltaV;
             if (deltaV.Y > 0.5f)
@@ -82,14 +72,14 @@ namespace VHOLTAT.Movement
         /// Knockback that replaces movement (STRAFTAT's AddForce zeroes the player's own velocity before pushing, like
         /// VHOLUME's launchers): drops horizontal speed and carried boost; the push itself arrives separately.
         /// </summary>
-        public void CancelHorizontal()
+        public override void CancelHorizontal()
         {
             Velocity.X = 0f;
             Velocity.Z = 0f;
             Boost = 0f;
         }
 
-        public void Step(in MovementInput input, in MovementSensors sensors, float dt)
+        public override void Step(in MovementInput input, in MovementSensors sensors, float dt)
         {
             if (dt <= 0f)
                 return;

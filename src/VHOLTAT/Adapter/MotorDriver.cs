@@ -17,7 +17,7 @@ namespace VHOLTAT.Adapter
     /// </summary>
     internal static class MotorDriver
     {
-        public static MovementMotor Motor;
+        public static MotorBase Motor;
         public static MovementSensors Sensors;
         /// <summary>The input the motor saw this frame (for the recorder).</summary>
         public static MovementInput LastInput;
@@ -55,10 +55,27 @@ namespace VHOLTAT.Adapter
         private static readonly Action<FirstPersonController, int> PlaySoundServer =
             AccessTools.MethodDelegate<Action<FirstPersonController, int>>(AccessTools.Method(typeof(FirstPersonController), "PlaySoundServer"));
 
-        public static void Init(MovementSettings settings, bool active)
+        private static MovementMotor locked;
+        private static VholumeMotor vholume;
+
+        public static void Init(MovementSettings settings, VholumeSettings vholumeSettings, bool active)
         {
-            Motor = new MovementMotor(settings);
+            locked = new MovementMotor(settings);
+            vholume = new VholumeMotor(vholumeSettings);
+            Motor = Plugin.Settings.ActiveModel == Config.MovementModel.Vholume ? (MotorBase)vholume : locked;
             Active = active;
+        }
+
+        /// <summary>Switches to the configured model (live), carrying the current velocity over.</summary>
+        private static void SelectModel(FirstPersonController fpc)
+        {
+            MotorBase want = Plugin.Settings.ActiveModel == Config.MovementModel.Vholume ? (MotorBase)vholume : locked;
+            if (want == Motor)
+                return;
+            var cc = fpc.characterController;
+            want.Reset(Motor.Velocity, cc != null && cc.isGrounded);
+            Motor = want;
+            Plugin.Logger.LogInfo($"movement model: {Motor.ModelName}");
         }
 
         public static bool IsLocal(FirstPersonController fpc) => fpc != null && fpc.IsOwner;
@@ -98,7 +115,7 @@ namespace VHOLTAT.Adapter
         {
             if (fpc != Current || Motor.State != MoveState.Ground)
                 return;
-            if (fpc.isCrouching && !lastCrouch && Motor.HorizontalSpeed >= Motor.S.SlideMinStartSpeed)
+            if (fpc.isCrouching && !lastCrouch && Motor.HorizontalSpeed >= Motor.SlideStartSpeed)
                 fpc.isSliding = true;
         }
 
@@ -122,6 +139,7 @@ namespace VHOLTAT.Adapter
                 Current = fpc;
                 Resync(fpc);
             }
+            SelectModel(fpc);
 
             if (pm.startRound || fpc.startOfRound)
                 return true; // vanilla doesn't move the player during the round-start freeze either
@@ -166,6 +184,7 @@ namespace VHOLTAT.Adapter
             lastCrouch = crouch;
 
             LastInput = input;
+            SensorProbe.ColumnLedge = Motor == vholume;
             SensorProbe.Probe(fpc, cc, fwd, fpc.landLayer.value, ref Sensors);
             if (OnLadder(fpc))
             {

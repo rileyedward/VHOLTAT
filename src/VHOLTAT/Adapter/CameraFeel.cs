@@ -24,10 +24,10 @@ namespace VHOLTAT.Adapter
             2f * Mathf.Atan(Mathf.Tan(horizontalDeg * 0.5f * Mathf.Deg2Rad) / Mathf.Max(0.1f, aspect)) * Mathf.Rad2Deg;
 
         /// <summary>VHOLUME's head tilt into the strafe, growing with speed up to run speed (positive = vanilla's strafe-left lean).</summary>
-        private static float StrafeTilt(FirstPersonController fpc, MovementMotor m, Config.PluginConfig cfg)
+        private static float StrafeTilt(FirstPersonController fpc, MotorBase m, Config.PluginConfig cfg)
         {
             float strafe = fpc.move.ReadValue<Vector2>().x;
-            return -strafe * cfg.StrafeTilt.Value * Mathf.Clamp01(m.HorizontalSpeed / m.S.RunSpeed);
+            return -strafe * cfg.StrafeTilt.Value * Mathf.Clamp01(m.HorizontalSpeed / m.RunSpeed);
         }
 
         public static void Apply(FirstPersonController fpc)
@@ -48,7 +48,7 @@ namespace VHOLTAT.Adapter
                     target = fpc.zoomFOV;
                 else
                 {
-                    float kick = wallRun || m.State == MoveState.Slide ? 10f : m.HorizontalSpeed > m.S.RunSpeed * 0.75f ? 5f : 0f;
+                    float kick = wallRun || m.State == MoveState.Slide ? 10f : m.HorizontalSpeed > m.RunSpeed * 0.75f ? 5f : 0f;
                     target = VerticalFov(cfg.VholumeFov.Value + kick, cam.aspect);
                 }
                 k = fpc.isAiming ? 20f : 10f;
@@ -64,7 +64,7 @@ namespace VHOLTAT.Adapter
                 {
                     float speed = m.HorizontalSpeed;
                     float baseFov = speed > 1f ? RunFov(fpc) : fpc.defaultFOV;
-                    float over = Mathf.InverseLerp(m.S.RunSpeed, cfg.FovFullSpeed.Value, speed);
+                    float over = Mathf.InverseLerp(m.RunSpeed, cfg.FovFullSpeed.Value, speed);
                     target = baseFov + over * cfg.FovSpeedBonus.Value;
                 }
                 k = fpc.isAiming ? 20f : cfg.FovLerp.Value;

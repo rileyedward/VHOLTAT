@@ -36,7 +36,7 @@ namespace VHOLTAT
             try
             {
                 harmony.PatchAll(typeof(Plugin).Assembly);
-                MotorDriver.Init(Settings.Movement, Settings.Enabled.Value);
+                MotorDriver.Init(Settings.Movement, Settings.Vholume, Settings.Enabled.Value);
             }
             catch (System.Exception ex)
             {
@@ -78,8 +78,21 @@ namespace VHOLTAT
             }
             if (s.DevKeys.Value && Input.GetKeyDown(s.PresetKey.Value))
             {
-                s.Preset.Value = s.Preset.Value == Config.MomentumPreset.Vholume ? Config.MomentumPreset.Playtest2 : Config.MomentumPreset.Vholume;
-                Plugin.Logger.LogInfo($"momentum preset: {s.Preset.Value}");
+                // Vholume model -> Locked03 (Vholume preset) -> Locked03 (Playtest2 preset) -> Vholume model
+                if (s.Model.Value == Config.MovementModel.Vholume)
+                {
+                    s.Preset.Value = Config.MomentumPreset.Vholume;
+                    s.Model.Value = Config.MovementModel.Locked03;
+                }
+                else if (s.Preset.Value == Config.MomentumPreset.Vholume)
+                    s.Preset.Value = Config.MomentumPreset.Playtest2;
+                else
+                {
+                    s.Preset.Value = Config.MomentumPreset.Vholume;
+                    s.Model.Value = Config.MovementModel.Vholume;
+                }
+                Plugin.Logger.LogInfo($"movement: {s.Model.Value}" +
+                    (s.Model.Value == Config.MovementModel.Locked03 ? $" ({s.Preset.Value} preset)" : ""));
             }
             if (s.DevKeys.Value && Input.GetKeyDown(s.JumpStyleKey.Value))
             {

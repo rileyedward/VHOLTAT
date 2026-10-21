@@ -21,6 +21,11 @@ namespace VHOLTAT.Adapter
         public static float VaultMinHeight = 0.35f;
         public static float VaultMaxHeight = 1.4f;
 
+        /// <summary>Use VHOLUME's column vault check instead of the wall-ahead ledge check (set per frame by the driver).</summary>
+        public static bool ColumnLedge;
+        /// <summary>How far ahead of the player centre the column check looks (VHOLUME: 0.5 m).</summary>
+        public static float ColumnAhead = 0.5f;
+
         /// <summary>The surface under the last found ledge / vault top (for the vault sound).</summary>
         public static Collider LastCoverSurface;
 
@@ -56,7 +61,12 @@ namespace VHOLTAT.Adapter
             s.WallFront = Wall(centre, lookFlat, radius + FrontReach, mask, out s.WallFrontNormal);
 
             s.LedgeFound = false;
-            if (s.WallFront && !s.Grounded)
+            if (ColumnLedge)
+            {
+                if (!s.Grounded && fpc.playerCamera != null)
+                    s.LedgeFound = FindColumnLedge(cc, pos, feet, fpc.playerCamera.transform.position.y, radius, lookFlat, mask, ref s);
+            }
+            else if (s.WallFront && !s.Grounded)
                 s.LedgeFound = FindLedge(cc, pos, feet, radius, lookFlat, mask, ref s);
 
             s.VaultFound = s.Grounded && FindVault(cc, pos, feet, radius, lookFlat, mask, ref s);
@@ -98,6 +108,36 @@ namespace VHOLTAT.Adapter
                 return false;
 
             // Target is expressed in transform-position space (the transform may not sit at the feet).
+            float offset = pos.y - feet;
+            s.LedgeTarget = new Vec3(hit.point.x, ledgeFeet + offset, hit.point.z);
+            return true;
+        }
+
+        /// <summary>
+        /// VHOLUME's vault check (MOVEMENT_FORMULAS §10): a column just ahead of the capsule, from 0.5 m above the eyes
+        /// down to 0.4 m above the feet, must hit a walkable top (normal.y > 0.88) with room to stand. No wall needed.
+        /// </summary>
+        private static bool FindColumnLedge(CharacterController cc, Vector3 pos, float feet, float eye, float radius, Vector3 fwd, int mask, ref MovementSensors s)
+        {
+            float reach = Mathf.Max(ColumnAhead, radius + 0.1f);
+            float top = eye + 0.5f;
+            float bottomY = feet + 0.4f;
+            // The way over must be open at the top of the column.
+            if (Physics.Raycast(new Vector3(pos.x, top, pos.z), fwd, reach, mask, NoTriggers))
+                return false;
+            Vector3 origin = new Vector3(pos.x, top, pos.z) + fwd * reach;
+            if (!Physics.SphereCast(origin, 0.2f, Vector3.down, out RaycastHit hit, top - bottomY, mask, NoTriggers))
+                return false;
+            if (hit.normal.y < 0.88f || hit.point.y < bottomY)
+                return false;
+
+            float ledgeFeet = hit.point.y + 0.02f;
+            LastCoverSurface = hit.collider;
+            Vector3 bottom = new Vector3(hit.point.x, ledgeFeet + radius + 0.01f, hit.point.z);
+            Vector3 upper = bottom + Vector3.up * Mathf.Max(0f, cc.height - 2f * radius);
+            if (Physics.CheckCapsule(bottom, upper, radius * 0.95f, mask, NoTriggers))
+                return false;
+
             float offset = pos.y - feet;
             s.LedgeTarget = new Vec3(hit.point.x, ledgeFeet + offset, hit.point.z);
             return true;

@@ -14,7 +14,7 @@ namespace VHOLTAT.Adapter
         private static PostProcessVolume volume;
         private static ChromaticAberration aberration;
 
-        public static void Apply(FirstPersonController fpc, MovementMotor m)
+        public static void Apply(FirstPersonController fpc, MotorBase m)
         {
             var v = fpc.volume;
             if (v == null)
@@ -38,7 +38,7 @@ namespace VHOLTAT.Adapter
             float target = 0f;
             if (Plugin.Settings.SpeedBlur.Value && MotorDriver.Active)
             {
-                float run = m.S.RunSpeed;
+                float run = m.RunSpeed;
                 float k = Mathf.Clamp01((m.HorizontalSpeed - run) / run);
                 target = MaxIntensity * k * k;
             }
