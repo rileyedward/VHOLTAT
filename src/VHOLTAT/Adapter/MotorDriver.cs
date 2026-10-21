@@ -193,6 +193,16 @@ namespace VHOLTAT.Adapter
             }
             float fallSpeed = -Motor.Velocity.Y;
             Motor.Step(in input, in Sensors, dt);
+            float cap = Plugin.Settings.ActiveMaxSpeed;
+            if (cap > 0f)
+            {
+                float h = Motor.HorizontalSpeed;
+                if (h > cap)
+                {
+                    Motor.Velocity.X *= cap / h;
+                    Motor.Velocity.Z *= cap / h;
+                }
+            }
 
             Vector3 vel = SensorProbe.ToUnity(Motor.Velocity);
             fpc.moveDirection = vel;

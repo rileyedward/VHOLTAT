@@ -65,6 +65,7 @@ namespace VHOLTAT
             gameObject.AddComponent<Net.PoseSync>();
             gameObject.AddComponent<Adapter.RemotePoses>();
             gameObject.AddComponent<Settings.SettingsMenu>();
+            gameObject.AddComponent<Settings.CombatPanel>();
         }
 
         private void Update()

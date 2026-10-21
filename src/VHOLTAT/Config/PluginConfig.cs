@@ -48,6 +48,8 @@ namespace VHOLTAT.Config
         public readonly ConfigEntry<bool> MarkSpots;
         public readonly ConfigEntry<KeyCode> MarkSpotKey;
         public readonly ConfigEntry<KeyCode> RecordKey;
+        public readonly ConfigEntry<KeyCode> CombatMenuKey;
+        public readonly ConfigEntry<float> MaxSpeed;
         public readonly ConfigEntry<bool> VanillaVault;
         public readonly ConfigEntry<float> FovSpeedBonus;
         public readonly ConfigEntry<float> FovFullSpeed;
@@ -132,6 +134,9 @@ namespace VHOLTAT.Config
                 "Enables the developer comparison keys: PresetKey (F8, momentum preset) and JumpStyleKey (F9, VHOLUME's exact jump).");
             MarkSpots = file.Bind("Debug", "MarkSpots", false,
                 "Lets MarkSpotKey write the current spot (map, position, state, nearby geometry) to BepInEx/vholtat_spots.txt for bug reports.");
+            CombatMenuKey = file.Bind("Debug", "CombatMenuKey", KeyCode.F12, "Shift + this key opens the combat tuning panel.");
+            MaxSpeed = file.Bind("Combat", "MaxSpeed", 0f,
+                "Hard limit on horizontal speed (m/s) for everyone in your lobby. 0 = no limit (VHOLUME has none).");
             RecordKey = file.Bind("Debug", "RecordKey", KeyCode.F11,
                 "Starts/stops a movement recording (BepInEx/recordings/*.csv) when DevKeys or MarkSpots is on.");
             MarkSpotKey = file.Bind("Debug", "MarkSpotKey", KeyCode.F10, "Marks the current spot when MarkSpots is on.");
@@ -156,6 +161,7 @@ namespace VHOLTAT.Config
             }
             Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
             ActiveModel = Model.Value;
+            ActiveMaxSpeed = MaxSpeed.Value;
             foreach (var f in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
                 if (f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigEntry<>) && f.GetValue(this) == null)
                     throw new System.InvalidOperationException("config entry not bound: " + f.Name);
@@ -219,11 +225,24 @@ namespace VHOLTAT.Config
                 pair.Value.Value = (float)pair.Key.GetValue(vdefaults);
             Preset.Value = MomentumPreset.Vholume;
             Model.Value = MovementModel.Vholume;
+            MaxSpeed.Value = 0f;
             Apply();
         }
 
         /// <summary>True while the host's settings are applied over the local config.</summary>
         public bool RemoteActive { get; private set; }
+
+        /// <summary>Speed limit in use (local or the host's); 0 = none.</summary>
+        public float ActiveMaxSpeed { get; private set; }
+
+        /// <summary>The config entry for a [Vholume] number, by field name (combat panel).</summary>
+        public ConfigEntry<float> VholumeEntry(string name)
+        {
+            foreach (var pair in vholumeEntries)
+                if (pair.Key.Name == name)
+                    return pair.Value;
+            return null;
+        }
 
         public int MovementFieldCount => movementEntries.Count + vholumeEntries.Count;
 
@@ -238,6 +257,7 @@ namespace VHOLTAT.Config
                 w.Write(pair.Value.Value);
             foreach (var pair in vholumeEntries)
                 w.Write(pair.Value.Value);
+            w.Write(MaxSpeed.Value);
         }
 
         /// <summary>Applies the host's values on top of the local config. Returns false if the layout doesn't match.</summary>
@@ -253,6 +273,7 @@ namespace VHOLTAT.Config
                 pair.Key.SetValue(Movement, r.ReadSingle());
             foreach (var pair in vholumeEntries)
                 pair.Key.SetValue(Vholume, r.ReadSingle());
+            ActiveMaxSpeed = r.ReadSingle();
             Movement.Playtest2Model = preset == MomentumPreset.Playtest2;
             ActiveModel = model;
             RemoteActive = true;
@@ -278,6 +299,7 @@ namespace VHOLTAT.Config
                 pair.Key.SetValue(Vholume, pair.Value.Value);
             Movement.Playtest2Model = Preset.Value == MomentumPreset.Playtest2;
             ActiveModel = Model.Value;
+            ActiveMaxSpeed = MaxSpeed.Value;
         }
 
         private static string SectionFor(string name)

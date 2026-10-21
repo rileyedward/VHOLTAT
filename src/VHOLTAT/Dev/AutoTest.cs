@@ -103,6 +103,11 @@ namespace VHOLTAT.Dev
                 Shot("vholtat_menu.png");
                 yield return new WaitForSeconds(1f);
                 pauseMenu.SetActive(false);
+                Settings.CombatPanel.ForceOpen = true;
+                yield return new WaitForSeconds(1.5f);
+                Shot("vholtat_combat.png");
+                yield return new WaitForSeconds(1f);
+                Settings.CombatPanel.ForceOpen = false;
                 Plugin.Logger.LogInfo("[test] done");
                 yield break;
             }
