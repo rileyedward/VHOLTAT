@@ -93,5 +93,5 @@ Not chosen yet — the owner will pick one before publishing. Until then, all ri
   two-copy multiplayer: `tools/dev/make_client_instance.ps1` then `tools/dev/lan_test.sh [secs] [parkour|match]`
   (optionally `LAG="--vholtat-lag 60 --vholtat-loss 0.02"`), map sweep: `tools/dev/map_sweep.sh`.
 - `tools/release/build-release.ps1` writes the zips, the launcher and the main download (`VHOLTAT-<version>-windows.zip`) to `dist/` (local only).
-- Docs: `docs/STRAFTAT_HOOKS.md`, `docs/MOVEMENT_SPEC.md`, `docs/MOMENTUM_SPEC.md`, `docs/RECON.md`,
-  `docs/launcher.md`, `docs/devlog.md`.
+- Docs: `docs/STRAFTAT_HOOKS.md`, `docs/MOVEMENT_FORMULAS.md`, `docs/MOVEMENT_SPEC.md`, `docs/MOMENTUM_SPEC.md`,
+  `docs/RECON.md`, `docs/launcher.md`, `docs/devlog.md`.
