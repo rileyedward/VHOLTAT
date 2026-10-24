@@ -77,7 +77,7 @@ Each of these shows a one-line problem plus fix in the status line, the log (`Er
 
 ## Updates
 
-`LauncherConfig.GitHubRepo` is empty for now, so there is no update check and no network access besides the BepInEx download: the launcher installs the plugin it carries, and a newer launcher exe with a newer plugin shows **Update to X**. Once the repo exists, set `GitHubRepo` to `owner/repo`; the launcher then checks the latest release on start and installs its `VHOLTAT-<ver>-manual.zip` when it's newer than the embedded plugin (with a `.sha256` check if the release has one), and mentions a newer `VHOLTAT-Launcher*.exe`.
+`LauncherConfig.GitHubRepo` is `rileyedward/VHOLTAT`. The launcher installs the plugin it carries, and a newer launcher exe with a newer plugin shows **Update to X**. On start it also checks the latest release on start and installs its `VHOLTAT-<ver>-manual.zip` when it's newer than the embedded plugin (with a `.sha256` check if the release has one), and mentions a newer `VHOLTAT-Launcher*.exe`.
 
 ## Command line
 
