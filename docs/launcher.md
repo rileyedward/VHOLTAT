@@ -29,7 +29,7 @@ The installed version (`ModVersion` in `state.json`) is compared with the plugin
 | not installed | **Install** | installs BepInEx and VHOLTAT, reports `installed 0.3.0` |
 | older (e.g. 0.2.0) | **Update to 0.3.0** | replaces only `plugins\VHOLTAT\`, keeps BepInEx and `BepInEx\config\dev.riley.vholtat.cfg`, re-checks the two game files; reports `updated 0.2.0 -> 0.3.0` |
 | same | **Play** | reinstalls the plugin (a repair), reports `reinstalled 0.3.0` |
-| newer (e.g. 0.4.0) | **Play** (status line notes it) | keeps the newer one, re-checks the game files, reports `kept 0.4.0` |
+| newer (e.g. 0.2.0) | **Play** (status line notes it) | keeps the newer one, re-checks the game files, reports `kept 0.2.0` |
 
 BepInEx is only unpacked again if one of its files the launcher needs (`BepInEx\core\BepInEx.Preloader.dll`, `winhttp.dll`) is missing. `install --zip` installs exactly that zip's plugin, older or not.
 

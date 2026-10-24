@@ -26,9 +26,9 @@ namespace VHOLTAT.Launcher
     {
         /// <summary>
         /// GitHub "owner/repo" to check for newer VHOLTAT releases. Empty: no update check, the launcher installs the
-        /// plugin it carries. Riley sets this when he creates the repo.
+        /// plugin it carries.
         /// </summary>
-        public const string GitHubRepo = "";
+        public const string GitHubRepo = "rileyedward/VHOLTAT";
 
         public static bool HasGitHub => GitHubRepo.Length > 0;
 

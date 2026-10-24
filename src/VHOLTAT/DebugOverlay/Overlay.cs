@@ -56,8 +56,7 @@ namespace VHOLTAT.DebugOverlay
             sb.Append("wall L ").Append(s.WallLeft ? "#" : "-").Append("  R ").Append(s.WallRight ? "#" : "-")
               .Append("  F ").Append(s.WallFront ? "#" : "-").Append("  ledge ").Append(s.LedgeFound ? "#" : "-")
               .Append("  ceil ").Append(s.CeilingBlocked ? "#" : "-").Append('\n');
-            sb.Append("weapon speed x").Append(fpc.movementFactor.ToString("0.00"))
-              .Append("   boost ").Append(m.Boost.ToString("0.0"));
+            sb.Append("weapon speed x").Append(fpc.movementFactor.ToString("0.00"));
             text = sb.ToString();
         }
 

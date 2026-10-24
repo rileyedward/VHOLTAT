@@ -36,3 +36,7 @@ dist/
 client-instance/
 scratchpad/
 vholtat_*.png
+
+# Movement recordings
+recordings/
+*.csv
